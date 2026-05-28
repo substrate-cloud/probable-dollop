@@ -1,0 +1,114 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "substrate"
+version = "0.1.0"
+description = "Python SDK and CLI for the Substrate On-Demand GPU platform"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Substrate Platform Team" }]
+keywords = ["substrate", "gpu", "mcp", "on-demand", "ml-infrastructure"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "structlog>=24.1",
+    "tomli>=2.0; python_version<'3.11'",
+    "tomli-w>=1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+cli = [
+    "typer>=0.12",
+    "rich>=13.7",
+]
+otel = [
+    "opentelemetry-api>=1.25",
+    "opentelemetry-sdk>=1.25",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+all = [
+    "substrate[cli,otel]",
+]
+
+[project.scripts]
+substrate = "substrate.cli.main:app"
+
+[project.urls]
+Homepage = "https://substrate.ai"
+Documentation = "https://substrate.ai/docs"
+Source = "https://github.com/substrate-ai/substrate-sdk"
+Issues = "https://github.com/substrate-ai/substrate-sdk/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/substrate"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "PL"]
+ignore = [
+    "PLR0913",  # too many arguments — public APIs do that
+    "SIM102",   # nested-if — sometimes clearer
+    "SIM105",   # contextlib.suppress vs try/except — both fine
+    "PLW0603",  # global statement — intentional in logging.configure
+    "E501",     # line length is enforced by ruff format, not lint
+]
+
+[tool.ruff.lint.per-file-ignores]
+# HTTP status codes are well-known constants, not magic numbers.
+"src/substrate/_http/**" = ["PLR2004"]
+# Top-level facade does cheap lazy imports inside helpers; intentional.
+"src/substrate/client.py" = ["PLC0415"]
+# Typer requires call-in-default for typer.Option/Argument; lazy imports in CLI
+# commands keep `import substrate` cheap.
+"src/substrate/cli/**" = ["B008", "PLC0415", "PLR2004"]
+# Pydantic-validator factories use uppercase-named factory functions (InferenceServer).
+"src/substrate/workloads/presets/**" = ["N802"]
+# Tests intentionally use literal magic numbers and conditional imports.
+"tests/**" = ["PLR2004", "PLC0415", "S101"]
+# YAML/JSON loaders inside helpers do conditional imports by design.
+"src/substrate/cli/instance_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substrate/cli/run_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substrate/cli/workload_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substrate/cli/config_cmd.py" = ["B008", "B904"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: real API calls; requires SUBSTRATE_MCP_TOKEN",
+]

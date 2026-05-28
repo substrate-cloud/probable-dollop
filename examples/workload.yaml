@@ -1,0 +1,12 @@
+# Example workload spec, consumed by `substrate run` and `substrate instance launch --workload`.
+kind: docker
+image: vllm/vllm-openai:latest
+args:
+  - --model
+  - mistralai/Mistral-7B-v0.1
+env:
+  # Secret references resolve at submit time (from your env).
+  HF_TOKEN:
+    env: HF_TOKEN
+ports:
+  8000: 8000

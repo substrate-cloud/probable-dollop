@@ -1,0 +1,279 @@
+# Feature catalogue consumed by scripts/build_feature_metrics.py to produce
+# docs/FEATURE-METRICS.md. Add a row here when a new public capability lands.
+#
+# status: stable | preview | api-blocked | missing
+# layer:  http | models | resources | workloads | declarative | client | cli | orchestration
+# reach:  python | manifest | cli — list any/all surfaces where the feature is reachable.
+# since:  SDK version when this feature shipped.
+
+features:
+  # ─── GPU & inventory ─────────────────────────────────────────────────
+  - name: Find cheapest by GPU type
+    status: stable
+    layer: resources
+    python: client.inventory.find_cheapest(gpu_type=...)
+    manifest: gpu.type
+    cli: inventory cheapest, show-gpus
+    since: "0.1"
+
+  - name: Region preference fallback
+    status: stable
+    layer: resources
+    python: client.inventory.find_with_fallback(...)
+    manifest: gpu.regions
+    cli: inventory ls --region
+    since: "0.1"
+
+  - name: Max-price cap
+    status: stable
+    layer: resources
+    python: client.inventory.list(max_price=...)
+    manifest: gpu.max_price_per_hour
+    cli: inventory ls --max-price
+    since: "0.1"
+
+  - name: Multi-GPU count
+    status: stable
+    layer: models
+    python: gpu.count=N (manifest)
+    manifest: gpu.count
+    cli: —
+    since: "0.1"
+
+  # ─── Launch ──────────────────────────────────────────────────────────
+  - name: Imperative launch
+    status: stable
+    layer: resources
+    python: client.instances.create(...)
+    manifest: —
+    cli: instance launch
+    since: "0.1"
+
+  - name: One-call launch
+    status: stable
+    layer: client
+    python: Substrate().launch(name=..., gpu=..., image=...)
+    manifest: full manifest
+    cli: run
+    since: "0.2"
+
+  - name: Fluent builder chain
+    status: stable
+    layer: declarative
+    python: Substrate().gpu(...).docker(...).launch(name=...)
+    manifest: yes (bijective)
+    cli: —
+    since: "0.2"
+
+  - name: Idempotent apply
+    status: stable
+    layer: declarative
+    python: client.apply(path_or_manifest)
+    manifest: substrate.yaml
+    cli: apply
+    since: "0.2"
+
+  - name: Plan / dry-run with cost estimate
+    status: stable
+    layer: declarative
+    python: client.plan(path_or_manifest)
+    manifest: substrate.yaml
+    cli: plan
+    since: "0.2"
+
+  - name: Destroy by manifest tag
+    status: stable
+    layer: declarative
+    python: client.destroy(name)
+    manifest: substrate.yaml
+    cli: destroy
+    since: "0.2"
+
+  - name: Drift detection on apply
+    status: stable
+    layer: declarative
+    python: client.apply(..., force=True)
+    manifest: implicit
+    cli: apply --force
+    since: "0.2"
+
+  - name: Multi-instance launch
+    status: missing
+    layer: —
+    python: —
+    manifest: —
+    cli: —
+    since: —
+
+  # ─── Workloads ───────────────────────────────────────────────────────
+  - name: Docker workload
+    status: stable
+    layer: workloads
+    python: DockerWorkload(...)
+    manifest: workload.type=docker
+    cli: workload validate
+    since: "0.1"
+
+  - name: Boot-script workload
+    status: preview
+    layer: workloads
+    python: BootScriptWorkload(...)
+    manifest: workload.type=boot_script
+    cli: workload validate
+    since: "0.1"
+
+  - name: Inference server preset
+    status: stable
+    layer: workloads
+    python: InferenceServer(engine=..., model=...)
+    manifest: —
+    cli: —
+    since: "0.1"
+
+  - name: Custom Workload protocol
+    status: stable
+    layer: workloads
+    python: subclass Workload
+    manifest: —
+    cli: —
+    since: "0.1"
+
+  # ─── Secrets ─────────────────────────────────────────────────────────
+  - name: Secret from env
+    status: stable
+    layer: workloads
+    python: Secret.from_env(NAME)
+    manifest: "{from_env: NAME} or $NAME"
+    cli: —
+    since: "0.1"
+
+  - name: Secret from vault
+    status: stable
+    layer: workloads
+    python: Secret.from_callable(...)
+    manifest: '{from_vault: PATH}'
+    cli: —
+    since: "0.1"
+
+  - name: Literal secret (warned)
+    status: stable
+    layer: workloads
+    python: Secret.literal(...)
+    manifest: '{literal: VALUE}'
+    cli: —
+    since: "0.1"
+
+  - name: Literal-secret regex defence
+    status: stable
+    layer: workloads
+    python: built-in
+    manifest: built-in
+    cli: built-in
+    since: "0.1"
+
+  # ─── Lifecycle / safety ──────────────────────────────────────────────
+  - name: Budget guard
+    status: preview
+    layer: orchestration
+    python: BudgetGuard(...)
+    manifest: lifecycle.budget_limit_usd
+    cli: —
+    since: "0.1"
+
+  - name: Max runtime (client-side)
+    status: stable
+    layer: declarative
+    python: lifecycle.max_runtime
+    manifest: lifecycle.max_runtime
+    cli: autostop
+    since: "0.2"
+
+  - name: Idle timeout (client-side)
+    status: stable
+    layer: declarative
+    python: lifecycle.idle_timeout
+    manifest: lifecycle.idle_timeout
+    cli: autostop
+    since: "0.2"
+
+  - name: Server-side runtime/spend enforcement
+    status: api-blocked
+    layer: —
+    python: —
+    manifest: —
+    cli: —
+    since: —
+
+  # ─── Auth ────────────────────────────────────────────────────────────
+  - name: Auth via env var
+    status: stable
+    layer: http
+    python: SUBSTRATE_MCP_TOKEN
+    manifest: —
+    cli: SUBSTRATE_MCP_TOKEN
+    since: "0.1"
+
+  - name: Auth via config file
+    status: stable
+    layer: client
+    python: profile=...
+    manifest: —
+    cli: config init, --profile
+    since: "0.1"
+
+  - name: Multiple profiles
+    status: stable
+    layer: client
+    python: Substrate(profile=...)
+    manifest: —
+    cli: --profile
+    since: "0.1"
+
+  - name: SSH key by name
+    status: stable
+    layer: resources
+    python: client.ssh_keys.find_by_name(...)
+    manifest: ssh_key
+    cli: instance launch --ssh-key
+    since: "0.1"
+
+  # ─── Observability ───────────────────────────────────────────────────
+  - name: Structured logs (structlog)
+    status: stable
+    layer: http
+    python: built-in
+    manifest: —
+    cli: —
+    since: "0.1"
+
+  - name: OpenTelemetry hooks
+    status: optional
+    layer: http
+    python: pip install substrate[otel]
+    manifest: —
+    cli: —
+    since: "0.1"
+
+  - name: Logs via SSH (journalctl/cloud-init)
+    status: stable
+    layer: cli
+    python: —
+    manifest: —
+    cli: logs
+    since: "0.2"
+
+  - name: Client-side cost report
+    status: stable
+    layer: cli
+    python: instance.estimated_spend
+    manifest: —
+    cli: cost
+    since: "0.2"
+
+  - name: Status webhooks / event streaming
+    status: api-blocked
+    layer: —
+    python: —
+    manifest: —
+    cli: —
+    since: —

@@ -7,20 +7,20 @@ from pathlib import Path
 
 import pytest
 
-from substrate.declarative import Manifest, parse_duration
-from substrate.declarative.lower import (
+from substratecloud.declarative import Manifest, parse_duration
+from substratecloud.declarative.lower import (
     docker_workload_from_spec,
     resolve_env_value,
     workload_from_manifest,
 )
-from substrate.declarative.manifest import (
+from substratecloud.declarative.manifest import (
     BootScriptWorkloadSpec,
     DockerWorkloadSpec,
     _FromEnv,
     _FromVault,
     _Literal,
 )
-from substrate.workloads.secret import Secret
+from substratecloud.workloads.secret import Secret
 
 
 # ─── basic parsing ─────────────────────────────────────────────────────────
@@ -116,7 +116,7 @@ def test_safety_net_helper():
 
 
 def test_yaml_roundtrip(tmp_path: Path):
-    src = tmp_path / "substrate.yaml"
+    src = tmp_path / "substratecloud.yaml"
     src.write_text(
         textwrap.dedent(
             """\

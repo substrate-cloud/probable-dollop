@@ -9,8 +9,8 @@ Private repos: pass a deploy key or HTTPS token in env at boot; never bake
 secrets into committed YAML — use `{from_env: GIT_TOKEN}` in Docker env or
 fetch from your secret store in a boot_script step.
 
-Run (offline):  SUBSTRATE_EXAMPLES_OFFLINE=1 python 15_deploy_git_repo.py
-Run (live):     SUBSTRATE_EXAMPLES_LIVE=1 SUBSTRATE_MCP_TOKEN=mcp_... python 15_deploy_git_repo.py
+Run (offline):  SUBSTRATECLOUD_EXAMPLES_OFFLINE=1 python 15_deploy_git_repo.py
+Run (live):     SUBSTRATECLOUD_EXAMPLES_LIVE=1 SUBSTRATECLOUD_MCP_TOKEN=mcp_... python 15_deploy_git_repo.py
 """
 
 from __future__ import annotations
@@ -18,13 +18,13 @@ from __future__ import annotations
 import os
 
 from _common import is_live_run, is_offline_ci, require_live
-from substrate import BootScript, Substrate
-from substrate.declarative.manifest import Manifest
-from substrate.workloads.boot_script.workload import BootScriptWorkload
+from substratecloud import BootScript, SubstrateCloud
+from substratecloud.declarative.manifest import Manifest
+from substratecloud.workloads.boot_script.workload import BootScriptWorkload
 
 # Point at your repository (HTTPS public clone).
-REPO_URL = os.environ.get("SUBSTRATE_DEPLOY_REPO", "https://github.com/pytorch/examples")
-REPO_DEST = os.environ.get("SUBSTRATE_DEPLOY_DEST", "/opt/app/repo")
+REPO_URL = os.environ.get("SUBSTRATECLOUD_DEPLOY_REPO", "https://github.com/pytorch/examples")
+REPO_DEST = os.environ.get("SUBSTRATECLOUD_DEPLOY_DEST", "/opt/app/repo")
 MANIFEST_NAME = "deploy-git-repo-sdk"
 
 
@@ -34,7 +34,7 @@ def build_workload() -> BootScriptWorkload:
         .with_base_image_setup()
         .git_clone(REPO_URL, REPO_DEST, depth=1)
         .write_file(
-            "/var/log/substrate-boot/repo-deploy.marker",
+            "/var/log/substratecloud-boot/repo-deploy.marker",
             "REPO_DEPLOY_OK",
             mode="0644",
         )
@@ -46,9 +46,11 @@ def build_manifest() -> Manifest:
     # Declarative path uses boot_script body rendered from BootScript steps.
     wl = build_workload()
     body = wl.script.render()
-    client = Substrate()
+    from substratecloud.declarative.builder import Launch
+
     return (
-        client.boot_script(body=body)
+        Launch()
+        .boot_script(body=body)
         .gpu("A4000", max_price=1.5)
         .tags("example:git-deploy")
         .budget(3)
@@ -62,19 +64,19 @@ def main() -> None:
     if is_offline_ci():
         print(manifest.to_yaml())
         return
-    client = Substrate()
+    client = SubstrateCloud()
     print(client.plan(manifest).summary())
     if not is_live_run():
         print("\nLive deploy:")
-        print("  export SUBSTRATE_EXAMPLES_LIVE=1")
-        print(f"  export SUBSTRATE_DEPLOY_REPO={REPO_URL!r}")
+        print("  export SUBSTRATECLOUD_EXAMPLES_LIVE=1")
+        print(f"  export SUBSTRATECLOUD_DEPLOY_REPO={REPO_URL!r}")
         print("  python 15_deploy_git_repo.py")
-        print(f"  substrate destroy {MANIFEST_NAME}")
+        print(f"  substratecloud destroy {MANIFEST_NAME}")
         return
     require_live()
     inst = client.apply(manifest)
     print(f"deployed {inst.name} ({inst.id}) ip={inst.ip_address}")
-    print(f"when done: substrate destroy {MANIFEST_NAME}")
+    print(f"when done: substratecloud destroy {MANIFEST_NAME}")
 
 
 if __name__ == "__main__":

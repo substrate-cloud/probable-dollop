@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
         print("offline: client.run(gpu=..., name=..., wait=True)")
         return
     require_live()
-    inst = Substrate().run(
+    inst = SubstrateCloud().run(
         gpu="A4000",
         name="run-composite-demo",
         image="nginx:latest",

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
 
 def demo_offline_filters() -> dict[str, object]:
@@ -17,10 +17,10 @@ def demo_offline_filters() -> dict[str, object]:
 def main() -> None:
     if not is_live_run():
         print("offline:", demo_offline_filters())
-        print("Set SUBSTRATE_EXAMPLES_LIVE=1 to query inventory.")
+        print("Set SUBSTRATECLOUD_EXAMPLES_LIVE=1 to query inventory.")
         return
     require_live()
-    client = Substrate()
+    client = SubstrateCloud()
     items = client.inventory.list(gpu_type="A100", max_price=5)
     print(f"found {len(items)} A100 listings under $5/hr")
     for item in items[:5]:

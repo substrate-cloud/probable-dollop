@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from _common import is_live_run, is_offline_ci, require_live
-from substrate import Substrate
-from substrate.declarative.manifest import Manifest
+from substratecloud import SubstrateCloud
+from substratecloud.declarative.manifest import Manifest
 
 MANIFEST = Path(__file__).resolve().parents[1] / "manifests" / "minimal-docker.yaml"
 
@@ -20,10 +20,10 @@ def main() -> None:
     if is_offline_ci():
         print(manifest.to_yaml())
         return
-    client = Substrate()
+    client = SubstrateCloud()
     print(client.plan(manifest).summary())
     if not is_live_run():
-        print(f"live: substrate apply {MANIFEST}")
+        print(f"live: substratecloud apply {MANIFEST}")
         return
     require_live()
     inst = client.apply(manifest)

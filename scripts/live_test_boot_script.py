@@ -17,12 +17,12 @@ import sys
 import time
 from pathlib import Path
 
-from substrate import BootScript, BootScriptWorkload, Substrate
-from substrate._http.errors import SubstrateError
+from substratecloud import BootScript, BootScriptWorkload, SubstrateCloud
+from substratecloud._http.errors import SubstrateCloudError
 
 REPO = "https://github.com/pytorch/examples"
 REPO_DEST = "/opt/repos/examples"
-MARKER_FILE = "/var/log/substrate-boot/HELLO_FROM_SDK_TEST"
+MARKER_FILE = "/var/log/substratecloud-boot/HELLO_FROM_SDK_TEST"
 MARKER_TEXT = "boot-script-marker-ok"
 
 PRIVATE_KEY = Path(__file__).resolve().parent.parent / "sdktest_private.pem"
@@ -70,7 +70,7 @@ def main() -> int:
         print(f"!! private key perms must be 0600: {PRIVATE_KEY}")
         return 2
 
-    c = Substrate()
+    c = SubstrateCloud()
 
     print(">>> 1. Find a cheap GPU (skip A6000/A4000 — user constraint)…")
     item = c.inventory.find_with_fallback([
@@ -114,7 +114,7 @@ def main() -> int:
             tags=["sdk-smoke", "boot-script", f"trace:{int(time.time())}"],
             launch_configuration=launch_cfg,
         )
-    except SubstrateError as exc:
+    except SubstrateCloudError as exc:
         print(f"!! POST failed (HTTP {exc.status_code}): {exc.message}")
         print("   (no billing started — if 400/422, the API likely doesn't accept "
               "type='script' or the field shape is different)")
@@ -133,7 +133,7 @@ def main() -> int:
 
         ip = str(active.ip_address)
         port = active.ssh_port or 22
-        user = active.ssh_user or "substrate"
+        user = active.ssh_user or "substratecloud"
 
         print(">>> 6. Wait for SSH to come up…")
         if not ssh_with_retries(ip, port, user, attempts=24, delay=10):
@@ -166,10 +166,10 @@ def main() -> int:
             ("requests_installed", "python3 -c 'import requests; print(requests.__version__)'", "."),
             ("repo_cloned", f"ls {REPO_DEST}/README.md && cat {REPO_DEST}/README.md | head -3", "examples"),
             ("marker_file", f"sudo cat {MARKER_FILE}", MARKER_TEXT),
-            ("boot_log", "sudo tail -5 /var/log/substrate-boot/boot.log", "completed"),
-            ("manifest_json", "sudo cat /var/log/substrate-boot/manifest.json | head -50", '"step"'),
-            ("beacon_local", "sudo cat /var/log/substrate-boot/beacon.json", '"stage"'),
-            ("per_step_logs", "sudo ls /var/log/substrate-boot/", "boot.log"),
+            ("boot_log", "sudo tail -5 /var/log/substratecloud-boot/boot.log", "completed"),
+            ("manifest_json", "sudo cat /var/log/substratecloud-boot/manifest.json | head -50", '"step"'),
+            ("beacon_local", "sudo cat /var/log/substratecloud-boot/beacon.json", '"stage"'),
+            ("per_step_logs", "sudo ls /var/log/substratecloud-boot/", "boot.log"),
         ]
         for name, cmd, must_contain in checks:
             rc, out = ssh(ip, port, user, cmd, timeout=30)
@@ -184,7 +184,7 @@ def main() -> int:
         try:
             deleted = c.instances.delete(instance_id)
             print(f"    deleted  status={deleted.status.value}")
-        except SubstrateError as e:
+        except SubstrateCloudError as e:
             print(f"!! DELETE FAILED — clean up manually: {e}")
             return 1
 

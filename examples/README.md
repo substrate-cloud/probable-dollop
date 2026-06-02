@@ -1,4 +1,4 @@
-# Substrate SDK examples
+# SubstrateCloud SDK examples
 
 Runnable recipes for the Python SDK and CLI. All examples are validated in CI via
 `tests/test_examples.py` (manifest parsing + dry-run `plan` without billing).
@@ -6,10 +6,10 @@ Runnable recipes for the Python SDK and CLI. All examples are validated in CI vi
 ## Setup
 
 ```sh
-pip install "substrate[cli]"
-substrate config init
+pip install "substratecloud[cli]"
+substratecloud config init
 # or:
-export SUBSTRATE_MCP_TOKEN=mcp_...
+export SUBSTRATECLOUD_MCP_TOKEN=mcp_...
 ```
 
 **Offline (default in CI):** examples only build manifests or print `plan` output.
@@ -17,17 +17,17 @@ export SUBSTRATE_MCP_TOKEN=mcp_...
 **Live launches** (starts billing):
 
 ```sh
-export SUBSTRATE_EXAMPLES_LIVE=1
+export SUBSTRATECLOUD_EXAMPLES_LIVE=1
 python examples/python/04_plan_apply_destroy.py
 ```
 
-Always tear down when finished: `substrate destroy <manifest-name>`.
+Always tear down when finished: `substratecloud destroy <manifest-name>`.
 
 ## Layout
 
 | Path | Contents |
 |------|----------|
-| [`manifests/`](manifests/) | YAML for `substrate plan` / `apply` / `destroy` |
+| [`manifests/`](manifests/) | YAML for `substratecloud plan` / `apply` / `destroy` |
 | [`python/`](python/) | SDK scripts (`01`–`14`) |
 | [`cli/COMMANDS.md`](cli/COMMANDS.md) | CLI command cheat sheet |
 
@@ -42,7 +42,7 @@ Always tear down when finished: `substrate destroy <manifest-name>`.
 | `05_fluent_docker_builder.py` | Docker chain + `to_yaml` |
 | `06_fluent_boot_script.py` | Boot script steps |
 | `07_secrets_and_env.py` | `Secret`, `$VAR`, `{from_env: ...}` |
-| `08_context_manager.py` | `with Substrate()` cleanup |
+| `08_context_manager.py` | `with SubstrateCloud()` cleanup |
 | `09_from_yaml.py` | `client.from_yaml` + `plan` |
 | `10_prototype_to_yaml.py` | Export builder output to disk |
 | `11_docker_workload_direct.py` | `DockerWorkload` + `client.run` |
@@ -54,9 +54,9 @@ Always tear down when finished: `substrate destroy <manifest-name>`.
 ## YAML manifests
 
 ```sh
-substrate plan  examples/manifests/minimal-docker.yaml
-substrate apply examples/manifests/minimal-docker.yaml
-substrate destroy minimal-docker
+substratecloud plan  examples/manifests/minimal-docker.yaml
+substratecloud apply examples/manifests/minimal-docker.yaml
+substratecloud destroy minimal-docker
 ```
 
 | Manifest | Workload |
@@ -82,11 +82,11 @@ Yes — the SDK supports deploying code from git onto the GPU box. Three pattern
 Set your repo URL:
 
 ```sh
-export SUBSTRATE_DEPLOY_REPO=https://github.com/your-org/your-repo.git
-python examples/python/15_deploy_git_repo.py   # with SUBSTRATE_EXAMPLES_LIVE=1
+export SUBSTRATECLOUD_DEPLOY_REPO=https://github.com/your-org/your-repo.git
+python examples/python/15_deploy_git_repo.py   # with SUBSTRATECLOUD_EXAMPLES_LIVE=1
 ```
 
-Or edit `examples/manifests/deploy-git-repo.yaml` and `substrate apply` it.
+Or edit `examples/manifests/deploy-git-repo.yaml` and `substratecloud apply` it.
 
 **Private repos:** use a deploy key or `GIT_TOKEN` in a boot step / Docker `env` with
 `{from_env: GIT_TOKEN}` — secrets are resolved at submit time (see `07_secrets_and_env.py`).

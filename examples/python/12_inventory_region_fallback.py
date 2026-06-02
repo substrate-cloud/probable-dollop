@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
 
 def fallback_prefs() -> list[dict[str, object]]:
@@ -20,7 +20,7 @@ def main() -> None:
         print("offline preferences:", prefs)
         return
     require_live()
-    item = Substrate().inventory.find_with_fallback(prefs)
+    item = SubstrateCloud().inventory.find_with_fallback(prefs)
     print(f"selected {item.gpu_type} in {item.region} @ €{item.final_price_per_hour}/hr")
 
 

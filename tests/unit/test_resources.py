@@ -7,7 +7,7 @@ from decimal import Decimal
 import httpx
 import pytest
 
-from substrate._http.errors import NoCapacityError
+from substratecloud._http.errors import NoCapacityError
 
 
 def test_inventory_list_parses_decimal_price(client, mock_api, sample_inventory_item):
@@ -48,7 +48,7 @@ def test_instances_create_includes_required_fields(client, mock_api, sample_inst
 
 def test_instance_estimated_spend_uses_decimal(sample_instance):
     """Money math stays Decimal — no float drift."""
-    from substrate.models.instance import Instance
+    from substratecloud.models.instance import Instance
 
     inst = Instance.model_validate(sample_instance)
     assert isinstance(inst.estimated_spend, Decimal)

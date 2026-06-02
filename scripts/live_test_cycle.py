@@ -13,11 +13,11 @@ from __future__ import annotations
 import sys
 import time
 
-from substrate import DockerWorkload, Substrate
+from substratecloud import DockerWorkload, SubstrateCloud
 
 
 def main() -> int:
-    c = Substrate()
+    c = SubstrateCloud()
 
     print(">>> 1. Find cheapest A4000…")
     item = c.inventory.find_cheapest(gpu_type="A4000")
@@ -88,7 +88,7 @@ def main() -> int:
 
     print()
     print(">>> Done. Estimated total spend: ~€" + str(item.final_price_per_hour) +
-          " (Substrate bills a final partial hour on delete).")
+          " (SubstrateCloud bills a final partial hour on delete).")
     return 0
 
 

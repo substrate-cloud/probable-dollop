@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from substrate._http.errors import (
+from substratecloud._http.errors import (
     AuthError,
     NotFoundError,
     QuotaError,

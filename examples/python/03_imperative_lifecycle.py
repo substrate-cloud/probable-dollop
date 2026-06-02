@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
         print("offline: would create/delete via client.instances.*")
         return
     require_live()
-    client = Substrate()
+    client = SubstrateCloud()
     item = client.inventory.find_cheapest(gpu_type="A4000")
     inst = client.instances.create(inventory_gpu_id=item.id, name="imperative-demo", tags=["example:imperative"])
     try:

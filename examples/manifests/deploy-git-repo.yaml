@@ -3,9 +3,9 @@
 # Replace REPO_URL with your repository. For private repos, inject a deploy key
 # or token at boot (see examples/python/15_deploy_git_repo.py).
 #
-#   substrate plan  examples/manifests/deploy-git-repo.yaml
-#   substrate apply examples/manifests/deploy-git-repo.yaml
-#   substrate destroy deploy-git-repo
+#   substratecloud plan  examples/manifests/deploy-git-repo.yaml
+#   substratecloud apply examples/manifests/deploy-git-repo.yaml
+#   substratecloud destroy deploy-git-repo
 
 name: deploy-git-repo
 tags:
@@ -23,7 +23,7 @@ workload:
     - apt-get update -y && apt-get install -y git
     - git clone --depth 1 https://github.com/pytorch/examples /opt/app/repo
     - test -f /opt/app/repo/README.md
-    - echo "REPO_DEPLOY_OK" > /var/log/substrate-boot/repo-deploy.marker
+    - echo "REPO_DEPLOY_OK" > /var/log/substratecloud-boot/repo-deploy.marker
 
 lifecycle:
   budget_limit_usd: 3

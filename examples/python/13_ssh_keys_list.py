@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
         print("offline: client.ssh_keys.list() returns registered key ids/names")
         return
     require_live()
-    keys = Substrate().ssh_keys.list()
+    keys = SubstrateCloud().ssh_keys.list()
     for key in keys:
         print(f"  {key.id}  {key.name}")
 

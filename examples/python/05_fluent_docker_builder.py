@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from substrate import Secret, Substrate
-from substrate.declarative.manifest import DockerWorkloadSpec, Manifest
+from substratecloud import Secret
+from substratecloud.declarative.builder import Launch
+from substratecloud.declarative.manifest import DockerWorkloadSpec, Manifest
 
 
 def build_manifest() -> Manifest:
     return (
-        Substrate()
+        Launch()
         .gpu("A100", count=1, max_price=3, regions=["north america"])
         .docker("vllm/vllm-openai:latest")
         .args("--model", "mistralai/Mistral-7B-v0.1")

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import SecretStr
 
-from substrate.config import Config, Profile, load, save
+from substratecloud.config import Config, Profile, load, save
 
 
 def test_save_and_load_roundtrip(tmp_path: Path):
@@ -46,7 +46,7 @@ def test_get_profile_respects_env(tmp_path: Path, monkeypatch):
             "staging": Profile(token=SecretStr("mcp_b"), base_url="y"),
         }
     )
-    monkeypatch.setenv("SUBSTRATE_PROFILE", "staging")
+    monkeypatch.setenv("SUBSTRATECLOUD_PROFILE", "staging")
     prof = cfg.get_profile()
     assert prof is cfg.profiles["staging"]
 

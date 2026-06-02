@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from substrate import BootScript, DockerWorkload, Secret
+from substratecloud import BootScript, DockerWorkload, Secret
 
 
 def test_docker_workload_renders_documented_shape():

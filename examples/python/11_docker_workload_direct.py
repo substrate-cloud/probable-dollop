@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from _common import is_live_run, require_live
-from substrate import DockerWorkload, Secret, Substrate
+from substratecloud import DockerWorkload, Secret, SubstrateCloud
 
 
 def build_workload() -> DockerWorkload:
@@ -20,7 +20,7 @@ def main() -> None:
     if not is_live_run():
         return
     require_live()
-    client = Substrate()
+    client = SubstrateCloud()
     inst = client.run(workload=wl, gpu="A4000", name="docker-workload-direct", tags=["example:docker"])
     print(f"launched {inst.id}; destroy via instance terminate or destroy if manifest-tagged")
 

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from substrate.declarative.builder import Launch
-from substrate.declarative.manifest import (
+from substratecloud.declarative.builder import Launch
+from substratecloud.declarative.manifest import (
     BootScriptWorkloadSpec,
     DockerWorkloadSpec,
     Manifest,
     _FromEnv,
 )
-from substrate.workloads.secret import Secret
+from substratecloud.workloads.secret import Secret
 
 
 # ─── immutability ─────────────────────────────────────────────────────────

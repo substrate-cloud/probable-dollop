@@ -720,7 +720,7 @@ wheels = [
 ]
 
 [[package]]
-name = "substrate"
+name = "substratecloud"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -769,7 +769,7 @@ requires-dist = [
     { name = "rich", marker = "extra == 'cli'", specifier = ">=13.7" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
     { name = "structlog", specifier = ">=24.1" },
-    { name = "substrate", extras = ["cli", "otel"], marker = "extra == 'all'" },
+    { name = "substratecloud", extras = ["cli", "otel"], marker = "extra == 'all'" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
     { name = "tomli-w", specifier = ">=1.0" },
     { name = "typer", marker = "extra == 'cli'", specifier = ">=0.12" },

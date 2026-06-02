@@ -6,8 +6,8 @@ import pytest
 import respx
 from pydantic import SecretStr
 
-from substrate._http.client import HttpClient
-from substrate.client import Substrate
+from substratecloud._http.client import HttpClient
+from substratecloud.client import SubstrateCloud
 
 
 @pytest.fixture
@@ -33,10 +33,10 @@ def mock_api(base_url: str):
 
 
 @pytest.fixture
-def client(base_url: str, token: SecretStr, monkeypatch) -> Substrate:
-    monkeypatch.setenv("SUBSTRATE_MCP_TOKEN", token.get_secret_value())
-    monkeypatch.setenv("SUBSTRATE_API_BASE_URL", base_url)
-    return Substrate()
+def client(base_url: str, token: SecretStr, monkeypatch) -> SubstrateCloud:
+    monkeypatch.setenv("SUBSTRATECLOUD_MCP_TOKEN", token.get_secret_value())
+    monkeypatch.setenv("SUBSTRATECLOUD_API_BASE_URL", base_url)
+    return SubstrateCloud()
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def sample_instance() -> dict:
         "gpu_count": 1,
         "status": "active",
         "ip_address": "94.101.98.107",
-        "ssh_user": "substrate",
+        "ssh_user": "substratecloud",
         "ssh_port": 22,
         "cost_per_hour": 0.14,
         "tags": ["experiment-42"],

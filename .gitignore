@@ -23,5 +23,5 @@ venv/
 .DS_Store
 docs/_build/
 *.pem
-substrate.generated.yaml
-examples/python/substrate.generated.yaml
+substratecloud.generated.yaml
+examples/python/substratecloud.generated.yaml

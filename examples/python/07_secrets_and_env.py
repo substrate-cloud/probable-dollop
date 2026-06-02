@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from substrate import Secret
-from substrate.declarative.lower import resolve_env_value
-from substrate.declarative.manifest import Manifest, _FromEnv
+from substratecloud import Secret
+from substratecloud.declarative.lower import resolve_env_value
+from substratecloud.declarative.manifest import Manifest, _FromEnv
 
 
 def build_manifest() -> Manifest:

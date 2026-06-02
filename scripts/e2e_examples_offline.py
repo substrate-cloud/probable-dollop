@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    env = {**os.environ, "SUBSTRATE_EXAMPLES_OFFLINE": "1", "SUBSTRATE_MCP_TOKEN": "mcp_test"}
-    env["SUBSTRATE_API_BASE_URL"] = "https://test.example.com/ondemand-mcp-manager"
+    env = {**os.environ, "SUBSTRATECLOUD_EXAMPLES_OFFLINE": "1", "SUBSTRATECLOUD_MCP_TOKEN": "mcp_test"}
+    env["SUBSTRATECLOUD_API_BASE_URL"] = "https://test.example.com/ondemand-mcp-manager"
 
     print(">>> pytest (unit + examples)")
     proc = subprocess.run(
@@ -24,11 +24,11 @@ def main() -> int:
     if proc.returncode != 0:
         return proc.returncode
 
-    print(">>> substrate plan on each manifest")
+    print(">>> substratecloud plan on each manifest")
     manifests = sorted((ROOT / "examples" / "manifests").glob("*.yaml"))
     for m in manifests:
         proc = subprocess.run(
-            ["substrate", "plan", str(m)],
+            ["substratecloud", "plan", str(m)],
             cwd=ROOT,
             env=env,
             capture_output=True,

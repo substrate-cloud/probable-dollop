@@ -2,7 +2,7 @@
 """Live E2E: apply git-repo manifest, verify clone via SSH, destroy.
 
 Requires:
-  - SUBSTRATE_MCP_TOKEN (or substrate config)
+  - SUBSTRATECLOUD_MCP_TOKEN (or substratecloud config)
   - sdktest_private.pem in repo root (registered as org key "sdktest")
 """
 
@@ -13,14 +13,14 @@ import sys
 import time
 from pathlib import Path
 
-from substrate import Substrate
-from substrate.declarative.manifest import Manifest
+from substratecloud import SubstrateCloud
+from substratecloud.declarative.manifest import Manifest
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "examples" / "manifests" / "deploy-git-repo.yaml"
 PRIVATE_KEY = ROOT / "sdktest_private.pem"
 REPO_DEST = "/opt/app/repo"
-MARKER = "/var/log/substrate-boot/repo-deploy.marker"
+MARKER = "/var/log/substratecloud-boot/repo-deploy.marker"
 MANIFEST_NAME = "deploy-git-repo"
 
 
@@ -51,7 +51,7 @@ def main() -> int:
         print(f"missing SSH key: {PRIVATE_KEY}")
         return 2
 
-    client = Substrate()
+    client = SubstrateCloud()
     manifest = Manifest.from_yaml(MANIFEST)
 
     print("=== plan ===")
@@ -66,7 +66,7 @@ def main() -> int:
         active = client.instances.wait_until_active(inst.id, timeout=1500, poll_interval=10)
         ip = str(active.ip_address)
         port = active.ssh_port or 22
-        user = active.ssh_user or "substrate"
+        user = active.ssh_user or "substratecloud"
         print(f"active ip={ip}")
 
         print("\n=== wait SSH ===")

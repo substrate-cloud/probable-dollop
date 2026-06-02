@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from substrate import Substrate
-from substrate.declarative.manifest import BootScriptWorkloadSpec, Manifest
+from substratecloud.declarative.builder import Launch
+from substratecloud.declarative.manifest import BootScriptWorkloadSpec, Manifest
 
 
 def build_manifest() -> Manifest:
     return (
-        Substrate()
+        Launch()
         .gpu("A4000")
         .boot_script(steps=["apt-get update -y", "echo ready", "nvidia-smi -L || true"])
         .budget(8)

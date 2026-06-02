@@ -11,8 +11,8 @@ import httpx
 import pytest
 from typer.testing import CliRunner
 
-from substrate.cli.main import app
-from substrate.declarative.manifest import Manifest
+from substratecloud.cli.main import app
+from substratecloud.declarative.manifest import Manifest
 
 EXAMPLES_ROOT = Path(__file__).resolve().parents[1] / "examples"
 MANIFESTS_DIR = EXAMPLES_ROOT / "manifests"
@@ -58,8 +58,8 @@ def test_cli_plan_example_manifest(
     mock_api,
     sample_inventory_item: dict,
 ) -> None:
-    monkeypatch.setenv("SUBSTRATE_MCP_TOKEN", "mcp_testtoken")
-    monkeypatch.setenv("SUBSTRATE_API_BASE_URL", "https://test.example.com/ondemand-mcp-manager")
+    monkeypatch.setenv("SUBSTRATECLOUD_MCP_TOKEN", "mcp_testtoken")
+    monkeypatch.setenv("SUBSTRATECLOUD_API_BASE_URL", "https://test.example.com/ondemand-mcp-manager")
     mock_api.get("/instances").mock(
         return_value=httpx.Response(200, json={"success": True, "data": []})
     )
@@ -96,12 +96,12 @@ def test_example_script_runs_offline(script: Path, monkeypatch: pytest.MonkeyPat
 
     env = {
         **os.environ,
-        "SUBSTRATE_EXAMPLES_OFFLINE": "1",
-        "SUBSTRATE_MCP_TOKEN": "mcp_testtoken",
-        "SUBSTRATE_API_BASE_URL": "https://test.example.com/ondemand-mcp-manager",
+        "SUBSTRATECLOUD_EXAMPLES_OFFLINE": "1",
+        "SUBSTRATECLOUD_MCP_TOKEN": "mcp_testtoken",
+        "SUBSTRATECLOUD_API_BASE_URL": "https://test.example.com/ondemand-mcp-manager",
     }
-    env.pop("SUBSTRATE_EXAMPLES_LIVE", None)
-    # Scripts that only print offline messages still need a token for Substrate() + plan.
+    env.pop("SUBSTRATECLOUD_EXAMPLES_LIVE", None)
+    # Scripts that only print offline messages still need a token for SubstrateCloud() + plan.
     proc = subprocess.run(
         [sys.executable, str(script)],
         cwd=PYTHON_DIR,

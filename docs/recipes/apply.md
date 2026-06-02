@@ -36,8 +36,7 @@ on any of the compared fields, `apply` refuses with a clear error.
 `workload.ports`, `gpu.type`, `os`, `ssh_key`.
 
 **Not compared:** env *values* (they may be secrets — see below), lifecycle
-bounds (`budget`, `max_runtime`, `idle_timeout` — they are process-local
-guards), auto-tags (`actor:`, `trace:`, `manifest:`).
+`budget_limit_usd` (audit tag only), auto-tags (`actor:`, `trace:`, `manifest:`).
 
 To force a replacement on drift:
 
@@ -59,6 +58,8 @@ If you care about value drift, either:
 
 ## Safety net required by default
 
-`apply` refuses a manifest that has no `budget_limit_usd`, `max_runtime`,
-or `idle_timeout`. Pass `--no-safety-net` to override; you'll get a
-warning printed.
+`apply` refuses a manifest that has no `budget_limit_usd`. Pass
+`--no-safety-net` to override; you'll get a billing warning printed.
+
+Billing stops only on `substrate destroy` — the SDK does not auto-terminate
+instances when a workload finishes.

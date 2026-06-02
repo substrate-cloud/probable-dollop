@@ -70,13 +70,13 @@ class Plan:
         lines.append(f"  Auto-tags    : {m.manifest_tag()}")
         lc = m.lifecycle
         if lc.budget_limit_usd is not None:
-            lines.append(f"  Safety net   : budget_limit_usd={lc.budget_limit_usd} ✓")
-        elif lc.max_runtime:
-            lines.append(f"  Safety net   : max_runtime={lc.max_runtime} ✓")
-        elif lc.idle_timeout:
-            lines.append(f"  Safety net   : idle_timeout={lc.idle_timeout} ✓")
+            lines.append(
+                f"  Budget tag   : budget_limit_usd={lc.budget_limit_usd} "
+                "(audit only — billing stops on destroy)"
+            )
         else:
-            lines.append("  Safety net   : ⚠ none set (pass --no-safety-net to allow)")
+            lines.append("  Budget tag   : ⚠ none set (pass --no-safety-net to allow)")
+        lines.append("  Teardown     : substrate destroy <name> when the workload finishes")
         if self.drift_fields:
             lines.append(f"  Drift fields : {', '.join(self.drift_fields)}")
         if self.warnings:
@@ -142,15 +142,15 @@ def apply(
     """Idempotent launch. See module docstring for the four cases.
 
     `force=True` destroys and re-launches a drifted instance.
-    `require_safety_net=False` allows manifests with no budget/max_runtime/idle_timeout.
+    `require_safety_net=False` allows manifests with no budget_limit_usd.
     """
     manifest = _coerce_manifest(source)
 
     if require_safety_net and not manifest.has_safety_net():
         raise SubstrateError(
-            f"manifest {manifest.name!r} has no safety net "
-            "(set lifecycle.budget_limit_usd, max_runtime, or idle_timeout — "
-            "or pass require_safety_net=False / --no-safety-net to opt out)"
+            f"manifest {manifest.name!r} has no budget_limit_usd "
+            "(set lifecycle.budget_limit_usd or pass require_safety_net=False / "
+            "--no-safety-net to opt out)"
         )
 
     existing = _find_existing_active(client, manifest)
@@ -343,7 +343,7 @@ def _collect_warnings(manifest: Manifest, require_safety_net: bool) -> list[str]
     warnings: list[str] = []
     if require_safety_net and not manifest.has_safety_net():
         warnings.append(
-            "no safety net set (lifecycle.budget_limit_usd / max_runtime / idle_timeout)"
+            "no budget_limit_usd set (lifecycle.budget_limit_usd required unless opted out)"
         )
     if manifest.workload is not None and isinstance(manifest.workload, DockerWorkloadSpec):
         for k, v in manifest.workload.env.items():

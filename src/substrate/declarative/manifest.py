@@ -13,10 +13,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-
-from substrate.declarative.duration import is_valid_duration
-
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ─── Secret references inside env: ─────────────────────────────────────────
 
@@ -104,32 +101,14 @@ class LifecycleSpec(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     budget_limit_usd: Decimal | None = Field(
-        default=None, description="BudgetGuard auto-attaches when running via apply."
-    )
-    max_runtime: str | None = Field(
-        default=None, description="Client-side timer; format '4h', '30m', '1d'."
-    )
-    idle_timeout: str | None = Field(
-        default=None, description="Client-side idle timer; same format."
+        default=None,
+        description="Audit tag (budget:N) for cost tracking; does not auto-terminate.",
     )
     wait_until_active: bool = True
     wait_timeout: float = Field(default=600.0, ge=1.0)
 
-    @field_validator("max_runtime", "idle_timeout", mode="after")
-    @classmethod
-    def _validate_duration(cls, v: str | None) -> str | None:
-        if v is not None and not is_valid_duration(v):
-            raise ValueError(
-                f"duration must be like '60s', '30m', '4h', '1d'; got {v!r}"
-            )
-        return v
-
     def has_safety_net(self) -> bool:
-        return (
-            self.budget_limit_usd is not None
-            or self.max_runtime is not None
-            or self.idle_timeout is not None
-        )
+        return self.budget_limit_usd is not None
 
 
 # ─── Top-level Manifest ────────────────────────────────────────────────────
@@ -185,7 +164,7 @@ class Manifest(BaseModel):
     # -- helpers -----------------------------------------------------------
 
     def has_safety_net(self) -> bool:
-        """True iff at least one of budget/max_runtime/idle_timeout is set."""
+        """True iff lifecycle.budget_limit_usd is set."""
         return self.lifecycle.has_safety_net()
 
     def manifest_tag(self) -> str:

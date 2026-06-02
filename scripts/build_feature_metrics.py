@@ -210,9 +210,9 @@ To launch a GPU you write:
 ## 5. Open API dependencies (unchanged in v0.2)
 
 1. Non-Docker `launch_configuration` shape — `workload.type: boot_script` stays `preview`.
-2. Boot-script logs endpoint — `substrate logs` uses SSH + `journalctl` until this lands.
-3. Webhooks / event streaming — `wait_until_active`, `autostop`, `BudgetGuard` stay polling.
-4. Server-side `max_runtime` / `max_spend` enforcement — `autostop` / `BudgetGuard` stay best-effort.
+2. Instance logs API — no SDK log streaming until the API exposes an endpoint.
+3. Webhooks / event streaming — completion detection stays out-of-band until the API ships events.
+4. Server-side `max_runtime` / `max_spend` enforcement — billing stops on `destroy` only today.
 5. Instance metadata service — not used yet.
 """
 

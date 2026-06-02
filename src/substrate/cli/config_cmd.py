@@ -6,7 +6,7 @@ from pathlib import Path
 
 import typer
 from pydantic import SecretStr
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Confirm, IntPrompt, Prompt
 
 from substrate import config as cfg
 from substrate.cli._common import console, err_console, handle_errors
@@ -15,6 +15,56 @@ app = typer.Typer(help="Manage credentials and profiles.", no_args_is_help=True)
 
 
 _DEFAULT_BASE_URL_HINT = "https://<your-supabase-project>.functions.supabase.co/ondemand-mcp-manager"
+
+
+def _select_default_ssh_key(
+    token: str, base_url: str, current_default: str | None
+) -> str | None:
+    """List the org's registered SSH keys and let the user pick a default.
+
+    Returns the chosen key's UUID as a string, or None to leave it unset. Falls
+    back to manual ID entry if the keys can't be listed (offline, bad token, …).
+    """
+    from substrate import Substrate
+
+    try:
+        with Substrate(token=token, base_url=base_url) as client:
+            keys = client.ssh_keys.list()
+    except Exception as exc:  # noqa: BLE001 — setup must not hard-fail on a list error
+        console.print(f"[dim]Couldn't list SSH keys ({exc}).[/dim]")
+        return (
+            Prompt.ask(
+                "Default SSH key ID [dim](optional)[/dim]", default=current_default or ""
+            ).strip()
+            or None
+        )
+
+    if not keys:
+        console.print(
+            "[dim]No SSH keys registered for this org "
+            "(add one in the Substrate console). Skipping.[/dim]"
+        )
+        return None
+
+    console.print("Available SSH keys:")
+    for i, key in enumerate(keys, start=1):
+        marker = (
+            " [cyan](current)[/cyan]"
+            if current_default and str(key.id) == current_default
+            else ""
+        )
+        console.print(f"  [bold]{i}[/bold]. {key.name} [dim]{key.id}[/dim]{marker}")
+    console.print("  [bold]0[/bold]. [dim]none / skip[/dim]")
+
+    choice = IntPrompt.ask(
+        "Select default SSH key",
+        choices=[str(i) for i in range(len(keys) + 1)],
+        default=0,
+        show_choices=False,
+    )
+    if choice == 0:
+        return None
+    return str(keys[choice - 1].id)
 
 
 @app.command("init")
@@ -69,10 +119,11 @@ def init(
         default=current.profiles.get(profile, cfg.Profile()).default_region or "",
     ).strip() or None
 
-    default_ssh_key_id = Prompt.ask(
-        "Default SSH key ID [dim](optional)[/dim]",
-        default=current.profiles.get(profile, cfg.Profile()).default_ssh_key_id or "",
-    ).strip() or None
+    default_ssh_key_id = _select_default_ssh_key(
+        token,
+        base_url,
+        current.profiles.get(profile, cfg.Profile()).default_ssh_key_id,
+    )
 
     new_profile = cfg.Profile(
         token=SecretStr(token),

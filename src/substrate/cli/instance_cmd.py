@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import os
-import shlex
-import subprocess
 from uuid import UUID
 
 import typer
@@ -71,7 +68,10 @@ def get(
     console.print(f"  status      = {inst.status.value}")
     console.print(f"  gpu         = {inst.gpu_count}x{inst.gpu_type}")
     console.print(f"  ip          = {inst.ip_address}")
-    console.print(f"  ssh         = {inst.ssh_user}@{inst.ip_address} -p {inst.ssh_port}")
+    if inst.ip_address and inst.ssh_user:
+        console.print(
+            f"  connect     = ssh {inst.ssh_user}@{inst.ip_address} -p {inst.ssh_port or 22}"
+        )
     console.print(f"  cost/hr     = €{inst.cost_per_hour}")
     console.print(f"  uptime      = {inst.uptime}")
     console.print(f"  est. spend  = €{inst.estimated_spend}")
@@ -129,8 +129,10 @@ def launch(
         wait_timeout=timeout,
     )
     console.print(f"[green]Launched[/green] {inst.name} ({inst.id})  status={inst.status.value}")
-    if inst.ip_address:
-        console.print(f"  ssh: ssh {inst.ssh_user}@{inst.ip_address} -p {inst.ssh_port}")
+    console.print(
+        "[dim]Billing stops only on terminate/delete. "
+        "Use `substrate destroy` for manifest-driven launches.[/dim]"
+    )
 
 
 @app.command("terminate")
@@ -168,31 +170,6 @@ def terminate(
 
     deleted = client.instances.delete_many([t.id for t in targets])
     console.print(f"[green]Deleted {len(deleted)} instance(s).[/green]")
-
-
-@app.command("ssh")
-@handle_errors
-def ssh(
-    id_or_name: str = typer.Argument(...),
-    identity: str | None = typer.Option(None, "-i", help="Path to private key."),
-    profile: str | None = typer.Option(None, "--profile"),
-) -> None:
-    """SSH into an instance. Uses your ssh-agent — keys never leave your machine."""
-    client = make_client(profile=profile)
-    inst = _resolve_instance(client, id_or_name)
-    if not inst.ip_address:
-        err_console.print(f"Instance {inst.name} has no IP yet (status={inst.status.value}).")
-        raise typer.Exit(2)
-    if not os.environ.get("SSH_AUTH_SOCK") and not identity:
-        err_console.print(
-            "No ssh-agent running and no -i/--identity supplied. Either start an agent or pass a key path."
-        )
-        raise typer.Exit(2)
-    cmd = ["ssh", f"{inst.ssh_user}@{inst.ip_address}", "-p", str(inst.ssh_port or 22)]
-    if identity:
-        cmd += ["-i", identity]
-    console.print(f"[dim]$ {' '.join(shlex.quote(c) for c in cmd)}[/dim]")
-    subprocess.call(cmd)
 
 
 def _resolve_instance(client, ident: str):

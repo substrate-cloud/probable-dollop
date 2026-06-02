@@ -14,6 +14,11 @@ pip install "substrate[cli]"
 pip install substrate
 ```
 
+## Examples
+
+See [`examples/README.md`](examples/README.md) for YAML manifests, Python recipes (`01`–`14`),
+and a CLI cheat sheet. CI validates every example without launching GPUs.
+
 ## Quick start (CLI)
 
 ```sh
@@ -30,7 +35,7 @@ substrate instance ls
 substrate instance terminate exp-1
 
 # Full lifecycle (launch → wait → run workload → cleanup)
-substrate run ./workload.yaml --gpu h100 --until-done
+substrate run ./workload.yaml --gpu h100 --name exp-1
 ```
 
 The first `substrate config init` writes a TOML file to `~/.config/substrate/config.toml`. You can also point at it with `SUBSTRATE_MCP_TOKEN` / `SUBSTRATE_API_BASE_URL` env vars, or pass `--token` / `--base-url` on every command.
@@ -90,7 +95,7 @@ Six layers, each independently usable:
 | Layer | Module | What it does |
 |---|---|---|
 | 6 | `substrate.cli` | Typer-based CLI |
-| 5 | `substrate.orchestration` | `BudgetGuard`, `JobRunner`, `InstancePool` (preview) |
+| 5 | `substrate.orchestration` | `JobRunner`, `InstancePool` (planned) |
 | 4 | `substrate.workloads` | `DockerWorkload`, `BootScript`, presets |
 | 3 | `substrate.resources` | `inventory`, `instances`, `ssh_keys` managers |
 | 2 | `substrate.models` | Pydantic v2 resource types |
@@ -103,8 +108,7 @@ See [docs/architecture.md](docs/architecture.md) for the detailed plan.
 Billing starts on `POST /instances` and only stops on `DELETE`. The SDK is designed around this:
 
 - **`POST /instances` is never auto-retried** — the SDK surfaces the error and lets you decide. Retrying a 5xx on launch is how you end up paying for two instances.
-- **`client.run()` requires either `budget_limit=` or `max_runtime=`** to be explicit about your safety net.
-- **`BudgetGuard`** runs a background watcher and DELETEs tagged instances if total spend crosses a threshold (best-effort — if your process dies, the guard dies with it).
+- **`apply` requires `budget_limit_usd`** in the manifest (or `--no-safety-net`). The budget is an audit tag only — billing stops on `substrate destroy`.
 - **CLI prints estimated daily/weekly spend** on every `launch`.
 
 > The Substrate API has a `max 3 active tokens per org` limit. Tokens are org-scoped, not user-scoped. The SDK auto-tags every launch with `actor:<user>` and `trace:<uuid>` so internal audit can attribute, but for SOC2-grade attribution you need a broker in front of the SDK. See `docs/recipes/multi-user-attribution.md`.
@@ -128,7 +132,7 @@ Note: the Substrate API persists `launch_configuration` server-side, so any secr
 The SDK ships with `Docker` workloads fully supported (documented API path). The following items are flagged inline in the code as `# API-OPEN-QUESTION` and may change:
 
 1. Non-Docker `launch_configuration` shape (`type: "script"` field name and structure).
-2. Boot-script logs endpoint — currently SDK reads via SSH + `journalctl`.
+2. Boot-script logs endpoint — use SSH outside the SDK until the API exposes logs.
 3. Webhooks / event streaming — currently polling-only.
 4. Server-side `max_runtime` / `max_spend` enforcement.
 5. Instance metadata service (for self-identifying status beacons).

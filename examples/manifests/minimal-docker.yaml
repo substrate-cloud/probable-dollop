@@ -1,0 +1,11 @@
+# Smallest valid manifest — nginx on a cheap GPU.
+name: minimal-docker
+gpu:
+  type: A4000
+workload:
+  type: docker
+  image: nginx:latest
+  ports:
+    80: 80
+lifecycle:
+  budget_limit_usd: 5

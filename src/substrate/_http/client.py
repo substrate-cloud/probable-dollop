@@ -169,17 +169,7 @@ class HttpClient:
                     request_id=request_id,
                 ) from exc
 
-            latency_ms = int((time.monotonic() - t0) * 1000)
             srv_request_id = response.headers.get("x-request-id") or request_id
-            _log.info(
-                "substrate.http.response",
-                method=method,
-                route=path,
-                status=response.status_code,
-                latency_ms=latency_ms,
-                attempt=attempt,
-                request_id=srv_request_id,
-            )
 
             if 200 <= response.status_code < 300:
                 return _decode(response, path, srv_request_id)
@@ -243,17 +233,7 @@ class HttpClient:
                     request_id=request_id,
                 ) from exc
 
-            latency_ms = int((time.monotonic() - t0) * 1000)
             srv_request_id = response.headers.get("x-request-id") or request_id
-            _log.info(
-                "substrate.http.response",
-                method=method,
-                route=path,
-                status=response.status_code,
-                latency_ms=latency_ms,
-                attempt=attempt,
-                request_id=srv_request_id,
-            )
 
             if 200 <= response.status_code < 300:
                 return _decode(response, path, srv_request_id)

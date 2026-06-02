@@ -136,12 +136,6 @@ class Launch:
     def budget(self, usd: float | Decimal) -> Launch:
         return self._lifecycle(budget_limit_usd=str(usd))
 
-    def max_runtime(self, duration: str) -> Launch:
-        return self._lifecycle(max_runtime=duration)
-
-    def idle_timeout(self, duration: str) -> Launch:
-        return self._lifecycle(idle_timeout=duration)
-
     def wait(self, *, until_active: bool = True, timeout: float | None = None) -> Launch:
         kw: dict[str, Any] = {"wait_until_active": until_active}
         if timeout is not None:

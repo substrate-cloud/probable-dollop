@@ -172,29 +172,13 @@ features:
     since: "0.1"
 
   # ─── Lifecycle / safety ──────────────────────────────────────────────
-  - name: Budget guard
-    status: preview
-    layer: orchestration
-    python: BudgetGuard(...)
+  - name: Budget audit tag
+    status: stable
+    layer: declarative
+    python: lifecycle.budget_limit_usd
     manifest: lifecycle.budget_limit_usd
-    cli: —
+    cli: apply
     since: "0.1"
-
-  - name: Max runtime (client-side)
-    status: stable
-    layer: declarative
-    python: lifecycle.max_runtime
-    manifest: lifecycle.max_runtime
-    cli: autostop
-    since: "0.2"
-
-  - name: Idle timeout (client-side)
-    status: stable
-    layer: declarative
-    python: lifecycle.idle_timeout
-    manifest: lifecycle.idle_timeout
-    cli: autostop
-    since: "0.2"
 
   - name: Server-side runtime/spend enforcement
     status: api-blocked
@@ -254,13 +238,13 @@ features:
     cli: —
     since: "0.1"
 
-  - name: Logs via SSH (journalctl/cloud-init)
-    status: stable
-    layer: cli
+  - name: Instance logs API
+    status: api-blocked
+    layer: —
     python: —
     manifest: —
-    cli: logs
-    since: "0.2"
+    cli: —
+    since: —
 
   - name: Client-side cost report
     status: stable

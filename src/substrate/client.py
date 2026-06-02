@@ -126,7 +126,7 @@ class Substrate:
         """One-call form: build a Manifest from kwargs and launch in one shot.
 
         Required: `name`. Optional: any other manifest field (gpu, image, args,
-        env, ports, budget, max_runtime, idle_timeout, tags, ssh_key, os, ...).
+        env, ports, budget, tags, ssh_key, os, ...).
         Convenience kwargs `image`/`args`/`env`/`ports` create a docker
         workload; pass `boot_script={...}` for boot scripts.
         """
@@ -201,7 +201,7 @@ class Substrate:
         ssh_key: str | UUID | None = None,
         os: str | None = None,
         tags: list[str] | None = None,
-        budget_limit: Decimal | None = None,  # noqa: ARG002  # honored by BudgetGuard
+        budget_limit: Decimal | None = None,  # noqa: ARG002  # recorded as budget:N tag for audit
         wait: bool = True,
         wait_timeout: float = 600.0,
     ) -> Instance:
@@ -210,8 +210,7 @@ class Substrate:
         - `gpu`: GPU family selector (e.g. "H100"). Resolved via inventory.
         - `region_preference`: ordered list of regions to try.
         - `ssh_key`: UUID or registered key name.
-        - `budget_limit`: paired with `BudgetGuard` (use the context-manager form
-          for hard enforcement; this kwarg is recorded as a tag for audit).
+        - `budget_limit`: recorded as a `budget:N` tag for audit (does not auto-terminate).
 
         Returns the Instance handle. If `wait=True`, blocks until `active`.
         """
@@ -323,7 +322,7 @@ def _build_manifest_from_kwargs(kwargs: dict[str, Any]) -> Manifest:
       gpu, count, max_price, regions                   — folded into gpu spec
       image, args, env, ports                          — folded into docker workload
       boot_script (dict)                               — alternative workload
-      budget, max_runtime, idle_timeout, wait, wait_timeout  — lifecycle
+      budget, wait, wait_timeout  — lifecycle
     """
     data: dict[str, Any] = {}
     if "name" not in kwargs:
@@ -366,10 +365,6 @@ def _build_manifest_from_kwargs(kwargs: dict[str, Any]) -> Manifest:
     lc: dict[str, Any] = {}
     if "budget" in kwargs:
         lc["budget_limit_usd"] = str(kwargs.pop("budget"))
-    if "max_runtime" in kwargs:
-        lc["max_runtime"] = kwargs.pop("max_runtime")
-    if "idle_timeout" in kwargs:
-        lc["idle_timeout"] = kwargs.pop("idle_timeout")
     if "wait" in kwargs:
         lc["wait_until_active"] = bool(kwargs.pop("wait"))
     if "wait_timeout" in kwargs:

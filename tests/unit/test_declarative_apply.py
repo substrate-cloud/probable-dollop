@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import copy
-
 import httpx
 import pytest
 
 from substrate._http.errors import SubstrateError
 from substrate.declarative import Manifest, Plan
-
 
 # ─── helpers ──────────────────────────────────────────────────────────────
 
@@ -202,7 +199,7 @@ def test_apply_force_destroys_and_relaunches(
 
 def test_apply_requires_safety_net_by_default(client, mock_api):
     m = Manifest.model_validate({"name": "demo", "gpu": {"type": "A4000"}})
-    with pytest.raises(SubstrateError, match="no safety net"):
+    with pytest.raises(SubstrateError, match="no budget_limit_usd"):
         client.apply(m)
 
 

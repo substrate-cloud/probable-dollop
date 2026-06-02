@@ -98,13 +98,11 @@ def test_boot_script_with_steps_parses():
 # ─── Lifecycle validation ──────────────────────────────────────────────────
 
 
-def test_lifecycle_duration_validates():
-    Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4h"}})
-    Manifest.model_validate({"name": "x", "lifecycle": {"idle_timeout": "30m"}})
+def test_lifecycle_rejects_removed_timer_fields():
     with pytest.raises(Exception):
-        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4 hours"}})
+        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4h"}})
     with pytest.raises(Exception):
-        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "h4"}})
+        Manifest.model_validate({"name": "x", "lifecycle": {"idle_timeout": "30m"}})
 
 
 def test_safety_net_helper():
@@ -112,8 +110,6 @@ def test_safety_net_helper():
     assert m.has_safety_net() is False
     m2 = Manifest.model_validate({"name": "x", "lifecycle": {"budget_limit_usd": "10"}})
     assert m2.has_safety_net() is True
-    m3 = Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "1h"}})
-    assert m3.has_safety_net() is True
 
 
 # ─── YAML round-trip ───────────────────────────────────────────────────────
@@ -139,7 +135,6 @@ def test_yaml_roundtrip(tmp_path: Path):
                 80: 80
             lifecycle:
               budget_limit_usd: '5.00'
-              max_runtime: 1h
               wait_until_active: true
               wait_timeout: 600.0
             """

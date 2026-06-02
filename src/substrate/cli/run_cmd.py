@@ -1,4 +1,4 @@
-"""`substrate run` — full lifecycle: launch → wait → optionally terminate."""
+"""`substrate run` — launch a workload and wait until the instance is active."""
 
 from __future__ import annotations
 
@@ -23,20 +23,10 @@ def register(app: typer.Typer) -> None:
         ssh_key: str | None = typer.Option(None, "--ssh-key"),
         os_image: str | None = typer.Option(None, "--os"),
         tag: list[str] = typer.Option([], "--tag"),
-        until_done: bool = typer.Option(
-            False,
-            "--until-done",
-            help="Block until the workload reports completion, then terminate.",
-        ),
         timeout: int = typer.Option(900, "--timeout"),
         profile: str | None = typer.Option(None, "--profile"),
     ) -> None:
-        """Launch a workload, wait, then (with --until-done) terminate.
-
-        Without --until-done this is equivalent to `instance launch --workload`.
-        With --until-done, the SDK polls for a completion marker and DELETEs
-        the instance when done.
-        """
+        """Launch a workload and block until the instance is active."""
         client = make_client(profile=profile)
 
         wl = _load_workload(workload_path)
@@ -54,14 +44,9 @@ def register(app: typer.Typer) -> None:
             wait_timeout=timeout,
         )
         console.print(f"[green]Active:[/green] {inst.name} @ {inst.ip_address}")
-
-        if not until_done:
-            return
-
-        err_console.print(
-            "[yellow]--until-done requires the workload to expose a completion signal "
-            "(planned for v0.3; see plan doc §11.2). For now: SSH in and inspect, or "
-            "use the JobRunner API.[/yellow]"
+        console.print(
+            "[dim]Billing stops only on terminate/delete. "
+            "Use `substrate destroy` for manifest-driven launches.[/dim]"
         )
 
     def _load_workload(path: Path):

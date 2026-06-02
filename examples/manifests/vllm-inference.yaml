@@ -1,22 +1,13 @@
-# vLLM serving Mistral-7B on the cheapest available A100.
-#
-# Deploy:    substrate apply examples/manifests/vllm-inference.yaml
-# Dry-run:   substrate plan  examples/manifests/vllm-inference.yaml
-# Tear down: substrate destroy vllm-mistral
-
+# Production-shaped inference deploy (Docker + health check + region cap).
 name: vllm-mistral
 tags:
   - team:platform
-  - env:demo
-
 gpu:
   type: A100
   count: 1
   max_price_per_hour: 3
   regions:
-    - us-east-1
-    - us-west-2
-
+    - north america
 workload:
   type: docker
   image: vllm/vllm-openai:latest
@@ -24,20 +15,13 @@ workload:
     - --model
     - mistralai/Mistral-7B-v0.1
   env:
-    # `{ from_env: HF_TOKEN }` resolves at submit time; the SDK never logs the value.
-    # Note: the Substrate API persists `launch_configuration` server-side, so
-    # the resolved value is recoverable via GET /instance/:id. For production,
-    # prefer the boot-script "fetch at boot" pattern (see docs/recipes/secrets.md).
-    HF_TOKEN:
-      from_env: HF_TOKEN
+    HF_TOKEN: { from_env: HF_TOKEN }
   ports:
     8000: 8000
   health:
     path: /health
     port: 8000
-
 lifecycle:
-  budget_limit_usd: 25           # BudgetGuard auto-attaches on `apply`
-  max_runtime: 8h                # Client-side timer; closes the process → timer dies
+  budget_limit_usd: 25
   wait_until_active: true
   wait_timeout: 900

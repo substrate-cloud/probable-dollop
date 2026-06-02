@@ -16,7 +16,7 @@ def register(app: typer.Typer) -> None:
         manifest_path: Path = typer.Argument(..., exists=True, readable=True),
         profile: str | None = typer.Option(None, "--profile"),
         no_safety_net: bool = typer.Option(
-            False, "--no-safety-net", help="Allow manifests with no budget/runtime/idle."
+            False, "--no-safety-net", help="Allow manifests with no budget_limit_usd."
         ),
     ) -> None:
         """Dry-run an apply. Never calls POST /instances."""
@@ -31,11 +31,16 @@ def register(app: typer.Typer) -> None:
         profile: str | None = typer.Option(None, "--profile"),
         force: bool = typer.Option(False, "--force", help="Destroy and relaunch on drift."),
         no_safety_net: bool = typer.Option(
-            False, "--no-safety-net", help="Allow manifests with no budget/runtime/idle."
+            False, "--no-safety-net", help="Allow manifests with no budget_limit_usd."
         ),
     ) -> None:
         """Idempotent launch. Reuses an existing matching instance if found."""
         client = make_client(profile=profile)
+        if no_safety_net:
+            err_console.print(
+                "[yellow]Warning: no budget_limit_usd — billing stops only on "
+                "`substrate destroy`.[/yellow]"
+            )
         inst = client.apply(
             manifest_path,
             force=force,
@@ -45,7 +50,11 @@ def register(app: typer.Typer) -> None:
             f"[green]Applied:[/green] {inst.name} ({inst.id}) status={inst.status.value}"
         )
         if inst.ip_address:
-            console.print(f"  ssh: ssh {inst.ssh_user}@{inst.ip_address} -p {inst.ssh_port}")
+            console.print(f"  ip: {inst.ip_address}")
+        console.print(
+            "[dim]Workload runs on the host (cloud-init / Docker). "
+            f"Tear down when finished: substrate destroy {inst.name}[/dim]"
+        )
 
     @app.command("destroy")
     @handle_errors

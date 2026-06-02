@@ -6,12 +6,20 @@ Typed, composable Python SDK and command-line interface for the [SubstrateCloud]
 
 ## Install
 
-```sh
-# Full install (recommended) — SDK + CLI
-pip install "substratecloud[cli]"
+**One-liner (recommended)** — isolated venv, no system `pip`, no `git`:
 
-# SDK only
-pip install substratecloud
+```sh
+curl -fsSL https://raw.githubusercontent.com/gssondhi-substrate/SDK/dev/scripts/install-cli.sh | bash
+```
+
+Installs to `~/.local/share/substratecloud/venv` and puts `substratecloud` in `~/.local/bin`.
+On Debian/Ubuntu you only need `python3` and `python3-venv` (`sudo apt install -y python3-venv`).
+
+**From PyPI / pip** (use a venv or pipx on PEP 668 systems):
+
+```sh
+pip install "substratecloud[cli]"
+pip install substratecloud   # SDK only
 ```
 
 ## Examples

@@ -9,7 +9,7 @@ Typed, composable Python SDK and command-line interface for the [SubstrateCloud]
 **One-liner (recommended)** — isolated venv, no system `pip`, no `git`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/gssondhi-substrate/SDK/dev/scripts/install-cli.sh | bash
+curl -fsSL https://raw.githubusercontent.com/substrate-cloud/probable-dollop/main/scripts/install-cli.sh | bash
 ```
 
 Installs to `~/.local/share/substratecloud/venv` and puts `substratecloud` in `~/.local/bin`.

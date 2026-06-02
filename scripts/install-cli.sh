@@ -3,8 +3,8 @@
 # Needs: python3 (+ python3-venv on Debian/Ubuntu). Everything else is self-contained.
 set -euo pipefail
 
-REPO="${SUBSTRATECLOUD_SDK_REPO:-gssondhi-substrate/SDK}"
-BRANCH="${SUBSTRATECLOUD_SDK_BRANCH:-dev}"
+REPO="${SUBSTRATECLOUD_SDK_REPO:-substrate-cloud/probable-dollop}"
+BRANCH="${SUBSTRATECLOUD_SDK_BRANCH:-main}"
 INSTALL_ROOT="${SUBSTRATECLOUD_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/substratecloud}"
 VENV="${INSTALL_ROOT}/venv"
 BIN_DIR="${HOME}/.local/bin"

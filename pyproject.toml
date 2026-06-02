@@ -59,8 +59,8 @@ substratecloud = "substratecloud.cli.main:app"
 [project.urls]
 Homepage = "https://substratecloud.ai"
 Documentation = "https://substratecloud.ai/docs"
-Source = "https://github.com/substrate-ai/substrate-sdk"
-Issues = "https://github.com/substrate-ai/substrate-sdk/issues"
+Source = "https://github.com/substrate-cloud/probable-dollop"
+Issues = "https://github.com/substrate-cloud/probable-dollop/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/substratecloud"]

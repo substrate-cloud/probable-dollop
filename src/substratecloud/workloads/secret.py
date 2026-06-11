@@ -12,11 +12,29 @@ Built-in sources:
 from __future__ import annotations
 
 import logging
+import math
 import os
+from collections import Counter
 from collections.abc import Callable
 from typing import Any
 
 _log = logging.getLogger("substratecloud.workloads.secret")
+
+
+def looks_high_entropy(value: str, *, min_length: int = 20, min_entropy: float = 4.0) -> bool:
+    """Heuristic: does `value` look like a randomly-generated secret?
+
+    Used for *warn-only* signals (never to reject). A value qualifies when it
+    is long enough, has no whitespace, and its Shannon entropy (bits per
+    character) clears `min_entropy`. Passphrases (which contain spaces) and
+    low-variety strings (e.g. ``"aaaa..."``) deliberately fall below the bar.
+    """
+    if len(value) < min_length or any(ch.isspace() for ch in value):
+        return False
+    counts = Counter(value)
+    n = len(value)
+    entropy = -sum((c / n) * math.log2(c / n) for c in counts.values())
+    return entropy >= min_entropy
 
 
 class Secret:

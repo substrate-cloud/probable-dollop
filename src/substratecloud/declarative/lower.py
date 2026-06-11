@@ -8,7 +8,9 @@ schema layer can be reasoned about in isolation. The reverse direction
 
 from __future__ import annotations
 
+import os
 import re
+import warnings
 from typing import TYPE_CHECKING
 
 from substratecloud.declarative.manifest import (
@@ -22,7 +24,7 @@ from substratecloud.declarative.manifest import (
 )
 from substratecloud.workloads.base import HealthCheck
 from substratecloud.workloads.docker import DockerWorkload
-from substratecloud.workloads.secret import Secret
+from substratecloud.workloads.secret import Secret, looks_high_entropy
 
 if TYPE_CHECKING:
     from substratecloud.workloads.base import Workload
@@ -61,7 +63,21 @@ def resolve_env_value(value: EnvValue) -> str | Secret:
     # Plain string: check for $VAR shorthand or escape.
     m = _DOLLAR_SHORTHAND.match(value)
     if m:
-        return Secret.from_env(m.group(1))
+        name = m.group(1)
+        # The shorthand reads your shell env at submit time and persists the
+        # value server-side. If the current value looks like a secret, warn —
+        # the user may not realise this leaves the local machine.
+        current = os.environ.get(name)
+        if current is not None and looks_high_entropy(current):
+            warnings.warn(
+                f"`${name}` reads a high-entropy value from your environment at "
+                f"submit time and persists it server-side in the launch "
+                f"configuration. If this is a secret, use `{{from_env: {name}}}` "
+                f"(a Secret reference) so the value is handled as a secret.",
+                UserWarning,
+                stacklevel=2,
+            )
+        return Secret.from_env(name)
     m = _ESCAPED_DOLLAR.match(value)
     if m:
         return f"${m.group(1)}"

@@ -12,6 +12,7 @@ from pydantic import SecretStr
 from substratecloud import config as config_module
 from substratecloud._http.auth import resolve_base_url, resolve_token
 from substratecloud._http.client import HttpClient
+from substratecloud._http.errors import WaitTimeoutError
 from substratecloud._http.logging import get_logger
 from substratecloud._http.retries import RetryPolicy
 from substratecloud.declarative.builder import Launch
@@ -243,9 +244,23 @@ class SubstrateCloud:
         )
 
         if wait:
-            instance = self.instances.wait_until_active(
-                instance.id, timeout=wait_timeout
-            )
+            try:
+                instance = self.instances.wait_until_active(
+                    instance.id, timeout=wait_timeout
+                )
+            except WaitTimeoutError as exc:
+                # The instance launched but didn't go active before the deadline.
+                # It is live and billing — make the id and how-to-stop explicit so
+                # the caller isn't left paying for an instance they can't see.
+                raise WaitTimeoutError(
+                    f"{exc.message} Instance {instance.id} is still running and "
+                    f"billing. Stop it with `substratecloud instance terminate "
+                    f"{instance.id}` or `client.instances.delete({str(instance.id)!r})`.",
+                    status_code=exc.status_code,
+                    request_id=exc.request_id,
+                    route=exc.route,
+                    body=exc.body,
+                ) from exc
 
         return instance
 

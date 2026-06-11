@@ -9,6 +9,7 @@ Designed so re-running the script (after a reboot, retry, or rebuild) is safe.
 
 from __future__ import annotations
 
+import re
 import shlex
 from dataclasses import dataclass, field
 from typing import Any
@@ -16,6 +17,26 @@ from typing import Any
 from substratecloud.workloads.secret import Secret, resolve_value
 
 _LOG_DIR = "/var/log/substratecloud-boot"
+
+# Newlines / NULs in fields that are interpolated into a systemd unit can
+# inject extra directives into a unit that runs as root at boot. Refuse them.
+_SYSTEMD_CTRL_CHARS = re.compile(r"[\r\n\x00]")
+
+
+def _reject_systemd_control(field_name: str, value: str) -> str:
+    if _SYSTEMD_CTRL_CHARS.search(value):
+        raise ValueError(
+            f"RunSystemdUnit.{field_name} contains a newline or control character. "
+            f"Such a value could inject directives into a unit that runs as root "
+            f"at boot, so rendering is refused. Use EnvironmentFile= or .custom() "
+            f"if you genuinely need multi-line content."
+        )
+    return value
+
+
+def _systemd_env_quote(value: str) -> str:
+    """Escape a value for use inside a double-quoted systemd `Environment=` entry."""
+    return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _log_block(step_id: str) -> tuple[str, str]:
@@ -177,9 +198,17 @@ class RunSystemdUnit(Step):
     step_id: str = "run_systemd_unit"
 
     def _body(self) -> str:
-        env_lines = "".join(
-            f'Environment="{k}={resolve_value(v)}"\n' for k, v in self.environment.items()
-        )
+        if "/" in self.name:
+            raise ValueError("RunSystemdUnit.name must be a bare unit name (no '/').")
+        _reject_systemd_control("name", self.name)
+        _reject_systemd_control("exec_start", self.exec_start)
+        _reject_systemd_control("description", self.description)
+        _reject_systemd_control("user", self.user)
+        env_lines = ""
+        for k, v in self.environment.items():
+            _reject_systemd_control(f"environment[{k!r}] name", k)
+            resolved = _reject_systemd_control(f"environment[{k!r}]", resolve_value(v))
+            env_lines += f'Environment="{_systemd_env_quote(k)}={_systemd_env_quote(resolved)}"\n'
         after = " ".join(self.after)
         unit_path = f"/etc/systemd/system/{shlex.quote(self.name)}.service"
         heredoc = (

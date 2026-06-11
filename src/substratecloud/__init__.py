@@ -9,6 +9,7 @@ from substratecloud._http.errors import (
     SubstrateCloudError,
     TransportError,
     ValidationError,
+    WaitTimeoutError,
     WorkloadTimeoutError,
 )
 from substratecloud._version import __version__
@@ -59,4 +60,5 @@ __all__ = [
     "TransportError",
     "NoCapacityError",
     "WorkloadTimeoutError",
+    "WaitTimeoutError",
 ]

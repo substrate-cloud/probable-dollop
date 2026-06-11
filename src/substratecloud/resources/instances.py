@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from uuid import UUID
 
 from substratecloud._http.client import HttpClient
-from substratecloud._http.errors import NotFoundError, SubstrateCloudError
+from substratecloud._http.errors import NotFoundError, SubstrateCloudError, WaitTimeoutError
 from substratecloud._http.logging import get_logger
 from substratecloud.models.enums import InstanceStatus
 from substratecloud.models.instance import Instance, InstanceCreate, InstanceUpdate
@@ -157,7 +157,8 @@ class InstancesManager:
         """Poll until the instance reports `active`.
 
         Raises:
-          TimeoutError: deadline exceeded.
+          WaitTimeoutError: deadline exceeded. (Also a builtin `TimeoutError`,
+            so `except TimeoutError` keeps working.)
           SubstrateCloudError: if the instance enters `deleting` or `deleted`.
         """
         deadline = time.monotonic() + timeout
@@ -180,7 +181,7 @@ class InstancesManager:
                     f"Instance {instance_id} entered terminal status {instance.status.value}"
                 )
             if time.monotonic() >= deadline:
-                raise TimeoutError(
+                raise WaitTimeoutError(
                     f"Instance {instance_id} did not become active within {timeout}s "
                     f"(last status: {instance.status.value})"
                 )

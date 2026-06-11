@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import shlex
+import warnings
 from collections.abc import Iterable, Mapping
 from datetime import timedelta
 
@@ -16,7 +17,7 @@ from substratecloud.models.launch_config import (
     docker,
 )
 from substratecloud.workloads.base import HealthCheck
-from substratecloud.workloads.secret import Secret, resolve_value
+from substratecloud.workloads.secret import Secret, looks_high_entropy, resolve_value
 
 # Conservative literal-secret detector — see plan doc §10.3.
 _SECRET_LITERAL_PATTERNS = [
@@ -79,6 +80,18 @@ class DockerWorkload(BaseModel):
             # The SubstrateCloud API persists this payload server-side (see plan doc §10.3).
             if not isinstance(value, Secret):
                 _refuse_if_literal_secret(name, resolved)
+                # The four hard-fail shapes above are exact. Anything else that
+                # *looks* random (DB passwords, API keys we don't pattern-match)
+                # would persist silently — warn so it isn't shipped by accident.
+                if looks_high_entropy(resolved):
+                    warnings.warn(
+                        f"env[{name!r}] looks like a secret (high-entropy value) "
+                        f"and will be persisted in the SubstrateCloud "
+                        f"launch_configuration. Wrap it with Secret.from_env(...) "
+                        f"so it isn't checked into source or stored server-side.",
+                        UserWarning,
+                        stacklevel=3,
+                    )
             out.append(EnvVar(name=name, value=resolved))
         return out
 

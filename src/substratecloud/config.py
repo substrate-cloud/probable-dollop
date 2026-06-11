@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -63,15 +64,34 @@ def load(path: Path | None = None) -> Config:
 
 
 def save(config: Config, path: Path | None = None) -> Path:
-    """Write config to disk with 0600 perms so the token is not world-readable."""
+    """Write config to disk so the token is never world-readable.
+
+    The file is created 0600 from the start — written to a temp file in the
+    same directory and atomically renamed into place — rather than written
+    with the process umask and tightened with a later chmod. That interim
+    window (file present, perms not yet narrowed) could expose the token on a
+    shared machine. The containing directory is forced to 0700.
+    """
     p = path or DEFAULT_CONFIG_PATH
-    p.parent.mkdir(parents=True, exist_ok=True)
-    serialised = _dump_for_toml(config)
-    p.write_text(tomli_w.dumps(serialised))
+    p.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     try:
-        p.chmod(0o600)
+        p.parent.chmod(0o700)  # enforce 0700 even if the directory already existed
     except OSError:  # pragma: no cover — windows
         pass
+    serialised = _dump_for_toml(config)
+    data = tomli_w.dumps(serialised)
+    # mkstemp creates the file readable/writable by the owner only (0600).
+    fd, tmp_name = tempfile.mkstemp(dir=str(p.parent), prefix=".config-", suffix=".toml.tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(data)
+        os.replace(tmp_name, p)  # atomic; the 0600 temp inode becomes config.toml
+    except BaseException:
+        try:
+            os.unlink(tmp_name)
+        except OSError:  # pragma: no cover
+            pass
+        raise
     return p
 
 

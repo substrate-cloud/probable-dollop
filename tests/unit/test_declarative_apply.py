@@ -272,3 +272,24 @@ def test_destroy_no_match_raises(client, mock_api):
     )
     with pytest.raises(SubstrateCloudError, match="no active instance"):
         client.destroy("demo")
+
+
+def test_dollar_shorthand_warns_when_env_is_high_entropy(monkeypatch):
+    # A bare `$VAR` shorthand silently reads your shell env at submit time and
+    # persists it server-side. If the value looks like a secret, warn loudly.
+    from substratecloud.declarative.lower import resolve_env_value
+
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "k3J8xQ2pL9mNvB7wZ1cF5tR0yH4dG6sA8eW2uI3")
+    with pytest.warns(UserWarning, match="(?i)high-entropy|environment"):
+        resolve_env_value("$AWS_SECRET_ACCESS_KEY")
+
+
+def test_dollar_shorthand_silent_for_lowentropy_env(monkeypatch):
+    import warnings as _warnings
+
+    from substratecloud.declarative.lower import resolve_env_value
+
+    monkeypatch.setenv("APP_STAGE", "production")
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")
+        resolve_env_value("$APP_STAGE")

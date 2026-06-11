@@ -66,3 +66,32 @@ def test_idempotent_get_retries_on_5xx(http, mock_api):
     mock_api.get("/inventory").mock(side_effect=responses)
     out = http.request("GET", "/inventory")
     assert out == {"data": []}
+
+
+def test_resolve_base_url_warns_on_plain_http():
+    # A non-https base URL means the bearer token goes out in cleartext.
+    from substratecloud._http.auth import resolve_base_url
+
+    with pytest.warns(UserWarning, match="(?i)cleartext|https"):
+        resolve_base_url("http://gpu.example.com")
+
+
+def test_resolve_base_url_silent_on_https():
+    import warnings as _warnings
+
+    from substratecloud._http.auth import resolve_base_url
+
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")  # any warning would fail the test
+        assert resolve_base_url("https://gpu.example.com") == "https://gpu.example.com"
+
+
+def test_resolve_base_url_silent_on_localhost_http():
+    # Plain http to localhost is a normal dev pattern; no warning.
+    import warnings as _warnings
+
+    from substratecloud._http.auth import resolve_base_url
+
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")
+        resolve_base_url("http://localhost:8080")

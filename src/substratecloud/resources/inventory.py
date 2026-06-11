@@ -50,6 +50,22 @@ class InventoryManager:
         items = self.list(gpu_type=gpu_type, location=location, max_price=max_price)
         matches = [i for i in items if i.gpu_count >= min_count]
         if not matches:
+            if max_price is not None:
+                # The price cap may be the reason nothing matched. Re-query
+                # without it (only on this failure path) so we can name the
+                # actual cheapest price instead of a bare "no inventory matched".
+                available = [
+                    i
+                    for i in self.list(gpu_type=gpu_type, location=location)
+                    if i.gpu_count >= min_count
+                ]
+                if available:
+                    cheapest = min(available, key=lambda i: i.final_price_per_hour)
+                    raise NoCapacityError(
+                        f"Cheapest {gpu_type or 'matching'} option is now "
+                        f"€{cheapest.final_price_per_hour:.2f}/hr, above your "
+                        f"€{float(max_price):.2f} max-price cap."
+                    )
             raise NoCapacityError(
                 f"No inventory matched gpu_type={gpu_type!r} location={location!r} "
                 f"min_count={min_count} max_price={max_price}"

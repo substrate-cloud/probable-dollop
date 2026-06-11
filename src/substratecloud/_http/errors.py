@@ -67,6 +67,16 @@ class WorkloadTimeoutError(SubstrateCloudError):
     """Workload health check did not pass within the deadline."""
 
 
+class WaitTimeoutError(SubstrateCloudError, TimeoutError):
+    """A poll/wait deadline was exceeded (e.g. `instances.wait_until_active`).
+
+    Subclasses both `SubstrateCloudError` — so the CLI's `handle_errors`
+    reports it as a clean message rather than dumping a traceback — and the
+    builtin `TimeoutError`, so existing `except TimeoutError` callers keep
+    working unchanged.
+    """
+
+
 _STATUS_MAP: dict[int, type[SubstrateCloudError]] = {
     400: ValidationError,
     401: AuthError,

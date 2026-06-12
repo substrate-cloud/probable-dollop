@@ -1,0 +1,18 @@
+# Region preference list — apply tries each region in order via inventory fallback.
+name: multi-region-job
+gpu:
+  type: H100
+  count: 1
+  max_price_per_hour: 5
+  regions:
+    - north america
+    - europe
+workload:
+  type: docker
+  image: nvidia/cuda:12.2.0-base-ubuntu22.04
+  args:
+    - bash
+    - -lc
+    - nvidia-smi && sleep 30
+lifecycle:
+  budget_limit_usd: 15

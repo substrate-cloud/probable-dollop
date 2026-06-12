@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import copy
-
 import httpx
 import pytest
 
-from substrate._http.errors import SubstrateError
-from substrate.declarative import Manifest, Plan
-
+from substratecloud._http.errors import SubstrateCloudError
+from substratecloud.declarative import Manifest, Plan
 
 # ─── helpers ──────────────────────────────────────────────────────────────
 
@@ -37,7 +34,7 @@ def _instance_dict_for(name: str, *, with_launch_cfg: dict | None = None, **over
         "gpu_count": 1,
         "status": "active",
         "ip_address": "94.101.98.107",
-        "ssh_user": "substrate",
+        "ssh_user": "substratecloud",
         "ssh_port": 22,
         "cost_per_hour": 0.14,
         "tags": [f"manifest:{name}", "actor:test"],
@@ -168,7 +165,7 @@ def test_apply_drift_refused_without_force(client, mock_api):
     mock_api.get("/instances").mock(
         return_value=httpx.Response(200, json={"success": True, "data": [inst]})
     )
-    with pytest.raises(SubstrateError, match="apply.drift"):
+    with pytest.raises(SubstrateCloudError, match="apply.drift"):
         client.apply(m)
 
 
@@ -202,7 +199,7 @@ def test_apply_force_destroys_and_relaunches(
 
 def test_apply_requires_safety_net_by_default(client, mock_api):
     m = Manifest.model_validate({"name": "demo", "gpu": {"type": "A4000"}})
-    with pytest.raises(SubstrateError, match="no safety net"):
+    with pytest.raises(SubstrateCloudError, match="no budget_limit_usd"):
         client.apply(m)
 
 
@@ -249,7 +246,7 @@ def test_destroy_multi_match_raises_without_all_flag(client, mock_api):
     mock_api.get("/instances").mock(
         return_value=httpx.Response(200, json={"success": True, "data": [a, b]})
     )
-    with pytest.raises(SubstrateError, match="multiple active"):
+    with pytest.raises(SubstrateCloudError, match="multiple active"):
         client.destroy("demo")
 
 
@@ -273,5 +270,26 @@ def test_destroy_no_match_raises(client, mock_api):
     mock_api.get("/instances").mock(
         return_value=httpx.Response(200, json={"success": True, "data": []})
     )
-    with pytest.raises(SubstrateError, match="no active instance"):
+    with pytest.raises(SubstrateCloudError, match="no active instance"):
         client.destroy("demo")
+
+
+def test_dollar_shorthand_warns_when_env_is_high_entropy(monkeypatch):
+    # A bare `$VAR` shorthand silently reads your shell env at submit time and
+    # persists it server-side. If the value looks like a secret, warn loudly.
+    from substratecloud.declarative.lower import resolve_env_value
+
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "k3J8xQ2pL9mNvB7wZ1cF5tR0yH4dG6sA8eW2uI3")
+    with pytest.warns(UserWarning, match="(?i)high-entropy|environment"):
+        resolve_env_value("$AWS_SECRET_ACCESS_KEY")
+
+
+def test_dollar_shorthand_silent_for_lowentropy_env(monkeypatch):
+    import warnings as _warnings
+
+    from substratecloud.declarative.lower import resolve_env_value
+
+    monkeypatch.setenv("APP_STAGE", "production")
+    with _warnings.catch_warnings():
+        _warnings.simplefilter("error")
+        resolve_env_value("$APP_STAGE")

@@ -1,4 +1,4 @@
-"""CLI: substrate plan / apply / destroy / check / show-gpus."""
+"""CLI: substratecloud plan / apply / destroy / check / show-gpus."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import httpx
 import pytest
 from typer.testing import CliRunner
 
-from substrate.cli.main import app
+from substratecloud.cli.main import app
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def runner() -> CliRunner:
 
 @pytest.fixture
 def manifest_file(tmp_path: Path) -> Path:
-    p = tmp_path / "substrate.yaml"
+    p = tmp_path / "substratecloud.yaml"
     p.write_text(
         textwrap.dedent(
             """\
@@ -40,8 +40,8 @@ def manifest_file(tmp_path: Path) -> Path:
 
 
 def _stub_env(monkeypatch, base_url):
-    monkeypatch.setenv("SUBSTRATE_MCP_TOKEN", "mcp_testtoken")
-    monkeypatch.setenv("SUBSTRATE_API_BASE_URL", base_url)
+    monkeypatch.setenv("SUBSTRATECLOUD_MCP_TOKEN", "mcp_testtoken")
+    monkeypatch.setenv("SUBSTRATECLOUD_API_BASE_URL", base_url)
 
 
 def test_cli_plan_outputs_summary(
@@ -75,7 +75,7 @@ def test_cli_apply_idempotent_reuse(
         "gpu_count": 1,
         "status": "active",
         "ip_address": "94.101.98.107",
-        "ssh_user": "substrate",
+        "ssh_user": "substratecloud",
         "ssh_port": 22,
         "cost_per_hour": 0.14,
         "tags": ["manifest:demo-cli"],
@@ -112,7 +112,7 @@ def test_cli_destroy_single_match(runner, monkeypatch, mock_api):
         "gpu_count": 1,
         "status": "active",
         "ip_address": "94.101.98.107",
-        "ssh_user": "substrate",
+        "ssh_user": "substratecloud",
         "ssh_port": 22,
         "cost_per_hour": 0.14,
         "tags": ["manifest:demo-cli"],

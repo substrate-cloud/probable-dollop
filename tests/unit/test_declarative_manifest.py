@@ -7,20 +7,20 @@ from pathlib import Path
 
 import pytest
 
-from substrate.declarative import Manifest, parse_duration
-from substrate.declarative.lower import (
+from substratecloud.declarative import Manifest, parse_duration
+from substratecloud.declarative.lower import (
     docker_workload_from_spec,
     resolve_env_value,
     workload_from_manifest,
 )
-from substrate.declarative.manifest import (
+from substratecloud.declarative.manifest import (
     BootScriptWorkloadSpec,
     DockerWorkloadSpec,
     _FromEnv,
     _FromVault,
     _Literal,
 )
-from substrate.workloads.secret import Secret
+from substratecloud.workloads.secret import Secret
 
 
 # ─── basic parsing ─────────────────────────────────────────────────────────
@@ -98,13 +98,11 @@ def test_boot_script_with_steps_parses():
 # ─── Lifecycle validation ──────────────────────────────────────────────────
 
 
-def test_lifecycle_duration_validates():
-    Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4h"}})
-    Manifest.model_validate({"name": "x", "lifecycle": {"idle_timeout": "30m"}})
+def test_lifecycle_rejects_removed_timer_fields():
     with pytest.raises(Exception):
-        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4 hours"}})
+        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "4h"}})
     with pytest.raises(Exception):
-        Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "h4"}})
+        Manifest.model_validate({"name": "x", "lifecycle": {"idle_timeout": "30m"}})
 
 
 def test_safety_net_helper():
@@ -112,15 +110,13 @@ def test_safety_net_helper():
     assert m.has_safety_net() is False
     m2 = Manifest.model_validate({"name": "x", "lifecycle": {"budget_limit_usd": "10"}})
     assert m2.has_safety_net() is True
-    m3 = Manifest.model_validate({"name": "x", "lifecycle": {"max_runtime": "1h"}})
-    assert m3.has_safety_net() is True
 
 
 # ─── YAML round-trip ───────────────────────────────────────────────────────
 
 
 def test_yaml_roundtrip(tmp_path: Path):
-    src = tmp_path / "substrate.yaml"
+    src = tmp_path / "substratecloud.yaml"
     src.write_text(
         textwrap.dedent(
             """\
@@ -139,7 +135,6 @@ def test_yaml_roundtrip(tmp_path: Path):
                 80: 80
             lifecycle:
               budget_limit_usd: '5.00'
-              max_runtime: 1h
               wait_until_active: true
               wait_timeout: 600.0
             """

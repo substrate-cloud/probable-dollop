@@ -1,0 +1,15 @@
+# Boot script via discrete steps (preview workload type).
+name: boot-script-steps
+tags:
+  - example:boot-script
+gpu:
+  type: A4000
+workload:
+  type: boot_script
+  steps:
+    - echo "boot step 1"
+    - nvidia-smi -L || true
+    - echo "ready"
+lifecycle:
+  budget_limit_usd: 8
+  wait_until_active: true

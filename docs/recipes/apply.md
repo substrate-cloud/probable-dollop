@@ -1,6 +1,6 @@
 # Idempotent apply
 
-`Substrate.apply(...)` (CLI: `substrate apply`) is the idempotent way to launch.
+`SubstrateCloud.apply(...)` (CLI: `substratecloud apply`) is the idempotent way to launch.
 The central cost-safety property: re-running `apply` against the same manifest
 **never duplicate-launches**.
 
@@ -11,7 +11,7 @@ instance with `manifest:<name>`. The next apply looks for an active
 instance carrying that tag and reuses it if the config matches.
 
 ```yaml
-# substrate.yaml
+# substratecloud.yaml
 name: my-app          # ← identity key
 gpu: { type: A4000 }
 workload:
@@ -22,9 +22,9 @@ lifecycle:
 ```
 
 ```sh
-substrate apply substrate.yaml        # first run: launches
-substrate apply substrate.yaml        # second run: reuses (no API write)
-substrate apply substrate.yaml        # any number of times: still one instance
+substratecloud apply substratecloud.yaml        # first run: launches
+substratecloud apply substratecloud.yaml        # second run: reuses (no API write)
+substratecloud apply substratecloud.yaml        # any number of times: still one instance
 ```
 
 ## Drift detection
@@ -36,13 +36,12 @@ on any of the compared fields, `apply` refuses with a clear error.
 `workload.ports`, `gpu.type`, `os`, `ssh_key`.
 
 **Not compared:** env *values* (they may be secrets — see below), lifecycle
-bounds (`budget`, `max_runtime`, `idle_timeout` — they are process-local
-guards), auto-tags (`actor:`, `trace:`, `manifest:`).
+`budget_limit_usd` (audit tag only), auto-tags (`actor:`, `trace:`, `manifest:`).
 
 To force a replacement on drift:
 
 ```sh
-substrate apply substrate.yaml --force    # destroys + relaunches
+substratecloud apply substratecloud.yaml --force    # destroys + relaunches
 ```
 
 ## Known limitation: env values are not compared
@@ -53,12 +52,14 @@ may be secrets and we don't want to compare them.
 
 If you care about value drift, either:
 
-- `substrate destroy <name> && substrate apply substrate.yaml`, or
+- `substratecloud destroy <name> && substratecloud apply substratecloud.yaml`, or
 - Include a hash of the value in your tags so it shows up as a tag change
   on a future schema extension.
 
 ## Safety net required by default
 
-`apply` refuses a manifest that has no `budget_limit_usd`, `max_runtime`,
-or `idle_timeout`. Pass `--no-safety-net` to override; you'll get a
-warning printed.
+`apply` refuses a manifest that has no `budget_limit_usd`. Pass
+`--no-safety-net` to override; you'll get a billing warning printed.
+
+Billing stops only on `substratecloud destroy` — the SDK does not auto-terminate
+instances when a workload finishes.

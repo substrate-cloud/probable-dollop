@@ -52,7 +52,7 @@ features:
   - name: One-call launch
     status: stable
     layer: client
-    python: Substrate().launch(name=..., gpu=..., image=...)
+    python: SubstrateCloud().launch(name=..., gpu=..., image=...)
     manifest: full manifest
     cli: run
     since: "0.2"
@@ -60,7 +60,7 @@ features:
   - name: Fluent builder chain
     status: stable
     layer: declarative
-    python: Substrate().gpu(...).docker(...).launch(name=...)
+    python: SubstrateCloud().gpu(...).docker(...).launch(name=...)
     manifest: yes (bijective)
     cli: —
     since: "0.2"
@@ -69,7 +69,7 @@ features:
     status: stable
     layer: declarative
     python: client.apply(path_or_manifest)
-    manifest: substrate.yaml
+    manifest: substratecloud.yaml
     cli: apply
     since: "0.2"
 
@@ -77,7 +77,7 @@ features:
     status: stable
     layer: declarative
     python: client.plan(path_or_manifest)
-    manifest: substrate.yaml
+    manifest: substratecloud.yaml
     cli: plan
     since: "0.2"
 
@@ -85,7 +85,7 @@ features:
     status: stable
     layer: declarative
     python: client.destroy(name)
-    manifest: substrate.yaml
+    manifest: substratecloud.yaml
     cli: destroy
     since: "0.2"
 
@@ -172,29 +172,13 @@ features:
     since: "0.1"
 
   # ─── Lifecycle / safety ──────────────────────────────────────────────
-  - name: Budget guard
-    status: preview
-    layer: orchestration
-    python: BudgetGuard(...)
+  - name: Budget audit tag
+    status: stable
+    layer: declarative
+    python: lifecycle.budget_limit_usd
     manifest: lifecycle.budget_limit_usd
-    cli: —
+    cli: apply
     since: "0.1"
-
-  - name: Max runtime (client-side)
-    status: stable
-    layer: declarative
-    python: lifecycle.max_runtime
-    manifest: lifecycle.max_runtime
-    cli: autostop
-    since: "0.2"
-
-  - name: Idle timeout (client-side)
-    status: stable
-    layer: declarative
-    python: lifecycle.idle_timeout
-    manifest: lifecycle.idle_timeout
-    cli: autostop
-    since: "0.2"
 
   - name: Server-side runtime/spend enforcement
     status: api-blocked
@@ -208,9 +192,9 @@ features:
   - name: Auth via env var
     status: stable
     layer: http
-    python: SUBSTRATE_MCP_TOKEN
+    python: SUBSTRATECLOUD_MCP_TOKEN
     manifest: —
-    cli: SUBSTRATE_MCP_TOKEN
+    cli: SUBSTRATECLOUD_MCP_TOKEN
     since: "0.1"
 
   - name: Auth via config file
@@ -224,7 +208,7 @@ features:
   - name: Multiple profiles
     status: stable
     layer: client
-    python: Substrate(profile=...)
+    python: SubstrateCloud(profile=...)
     manifest: —
     cli: --profile
     since: "0.1"
@@ -249,18 +233,18 @@ features:
   - name: OpenTelemetry hooks
     status: optional
     layer: http
-    python: pip install substrate[otel]
+    python: pip install substratecloud[otel]
     manifest: —
     cli: —
     since: "0.1"
 
-  - name: Logs via SSH (journalctl/cloud-init)
-    status: stable
-    layer: cli
+  - name: Instance logs API
+    status: api-blocked
+    layer: —
     python: —
     manifest: —
-    cli: logs
-    since: "0.2"
+    cli: —
+    since: —
 
   - name: Client-side cost report
     status: stable

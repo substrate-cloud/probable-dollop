@@ -7,9 +7,9 @@ where you want fine-grained control.
 ## Direct manager access
 
 ```python
-from substrate import Substrate
+from substratecloud import SubstrateCloud
 
-client = Substrate()
+client = SubstrateCloud()
 
 # Inventory
 items = client.inventory.list(gpu_type="A100", max_price=3)
@@ -30,9 +30,9 @@ key = client.ssh_keys.find_by_name("my-key")
 
 | You want… | Use |
 |---|---|
-| Launch with one Python line | `Substrate().launch(...)` |
-| Compose a launch in steps | `Substrate().gpu(...).docker(...).launch(...)` |
-| Idempotent CI redeploy | `Substrate().apply("substrate.yaml")` |
+| Launch with one Python line | `SubstrateCloud().launch(...)` |
+| Compose a launch in steps | `SubstrateCloud().gpu(...).docker(...).launch(...)` |
+| Idempotent CI redeploy | `SubstrateCloud().apply("substratecloud.yaml")` |
 | Browse capacity | `client.inventory.list(...)` |
 | Manage SSH keys | `client.ssh_keys` |
 | Custom polling / state machine | `client.instances.get(...) + loop` |

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from substrate.declarative.builder import Launch
-from substrate.declarative.manifest import (
+from substratecloud.declarative.builder import Launch
+from substratecloud.declarative.manifest import (
     BootScriptWorkloadSpec,
     DockerWorkloadSpec,
     Manifest,
     _FromEnv,
 )
-from substrate.workloads.secret import Secret
+from substratecloud.workloads.secret import Secret
 
 
 # ─── immutability ─────────────────────────────────────────────────────────
@@ -45,7 +45,6 @@ def test_docker_full_chain_emits_manifest():
         .env(HF_TOKEN="$HF_TOKEN", PLAIN="value")
         .ports(8000)
         .budget(10)
-        .max_runtime("4h")
         .tags("team:platform", "env:demo")
         .to_manifest(name="vllm-mistral")
     )
@@ -59,7 +58,6 @@ def test_docker_full_chain_emits_manifest():
     assert m.workload.env["PLAIN"] == "value"
     assert m.workload.ports == {8000: 8000}
     assert str(m.lifecycle.budget_limit_usd) == "10"
-    assert m.lifecycle.max_runtime == "4h"
     assert "team:platform" in m.tags
     assert "env:demo" in m.tags
 

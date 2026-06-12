@@ -1,0 +1,12 @@
+# Boot script via multiline body (same API shape as steps).
+name: boot-script-body
+gpu:
+  type: A4000
+workload:
+  type: boot_script
+  body: |
+    set -euo pipefail
+    echo "hello from boot body"
+    nvidia-smi -L || true
+lifecycle:
+  budget_limit_usd: 8

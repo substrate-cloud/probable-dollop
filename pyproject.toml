@@ -3,14 +3,14 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "substrate"
+name = "substratecloud"
 version = "0.1.0"
-description = "Python SDK and CLI for the Substrate On-Demand GPU platform"
+description = "Python SDK and CLI for the SubstrateCloud On-Demand GPU platform"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
-authors = [{ name = "Substrate Platform Team" }]
-keywords = ["substrate", "gpu", "mcp", "on-demand", "ml-infrastructure"]
+authors = [{ name = "SubstrateCloud Platform Team" }]
+keywords = ["substratecloud", "gpu", "mcp", "on-demand", "ml-infrastructure"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -50,20 +50,20 @@ dev = [
     "ruff>=0.5",
 ]
 all = [
-    "substrate[cli,otel]",
+    "substratecloud[cli,otel]",
 ]
 
 [project.scripts]
-substrate = "substrate.cli.main:app"
+substratecloud = "substratecloud.cli.main:app"
 
 [project.urls]
-Homepage = "https://substrate.ai"
-Documentation = "https://substrate.ai/docs"
-Source = "https://github.com/substrate-ai/substrate-sdk"
-Issues = "https://github.com/substrate-ai/substrate-sdk/issues"
+Homepage = "https://substratecloud.ai"
+Documentation = "https://substratecloud.ai/docs"
+Source = "https://github.com/substrate-cloud/probable-dollop"
+Issues = "https://github.com/substrate-cloud/probable-dollop/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/substrate"]
+packages = ["src/substratecloud"]
 
 [tool.ruff]
 line-length = 100
@@ -81,21 +81,21 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # HTTP status codes are well-known constants, not magic numbers.
-"src/substrate/_http/**" = ["PLR2004"]
+"src/substratecloud/_http/**" = ["PLR2004"]
 # Top-level facade does cheap lazy imports inside helpers; intentional.
-"src/substrate/client.py" = ["PLC0415"]
+"src/substratecloud/client.py" = ["PLC0415"]
 # Typer requires call-in-default for typer.Option/Argument; lazy imports in CLI
-# commands keep `import substrate` cheap.
-"src/substrate/cli/**" = ["B008", "PLC0415", "PLR2004"]
+# commands keep `import substratecloud` cheap.
+"src/substratecloud/cli/**" = ["B008", "PLC0415", "PLR2004"]
 # Pydantic-validator factories use uppercase-named factory functions (InferenceServer).
-"src/substrate/workloads/presets/**" = ["N802"]
+"src/substratecloud/workloads/presets/**" = ["N802"]
 # Tests intentionally use literal magic numbers and conditional imports.
 "tests/**" = ["PLR2004", "PLC0415", "S101"]
 # YAML/JSON loaders inside helpers do conditional imports by design.
-"src/substrate/cli/instance_cmd.py" = ["B008", "PLC0415", "B904"]
-"src/substrate/cli/run_cmd.py" = ["B008", "PLC0415", "B904"]
-"src/substrate/cli/workload_cmd.py" = ["B008", "PLC0415", "B904"]
-"src/substrate/cli/config_cmd.py" = ["B008", "B904"]
+"src/substratecloud/cli/instance_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substratecloud/cli/run_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substratecloud/cli/workload_cmd.py" = ["B008", "PLC0415", "B904"]
+"src/substratecloud/cli/config_cmd.py" = ["B008", "B904"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -110,5 +110,5 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 markers = [
-    "integration: real API calls; requires SUBSTRATE_MCP_TOKEN",
+    "integration: real API calls; requires SUBSTRATECLOUD_MCP_TOKEN",
 ]

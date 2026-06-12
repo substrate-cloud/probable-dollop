@@ -26,8 +26,8 @@ import sys
 import time
 from pathlib import Path
 
-from substrate import DockerWorkload, Substrate
-from substrate._http.errors import SubstrateError
+from substratecloud import DockerWorkload, SubstrateCloud
+from substratecloud._http.errors import SubstrateCloudError
 
 REPO = "https://github.com/pytorch/examples"
 PRIVATE_KEY = Path(__file__).resolve().parent.parent / "sdktest_private.pem"
@@ -80,7 +80,7 @@ def main() -> int:
         print(f"!! private key missing: {PRIVATE_KEY}")
         return 2
 
-    c = Substrate()
+    c = SubstrateCloud()
 
     print(">>> 1. Find cheapest GPU (skip A6000/A4000 — fall back through types)…")
     # A6000 just failed provisioning; A4000 was excluded by the user.
@@ -121,7 +121,7 @@ def main() -> int:
             tags=["sdk-smoke", "docker", "deploy-repo", f"trace:{int(time.time())}"],
             launch_configuration=launch_cfg,
         )
-    except SubstrateError as exc:
+    except SubstrateCloudError as exc:
         print(f"!! POST failed: HTTP {exc.status_code}: {exc.message}")
         return 1
 
@@ -138,7 +138,7 @@ def main() -> int:
 
         ip = str(active.ip_address)
         port = active.ssh_port or 22
-        user = active.ssh_user or "substrate"
+        user = active.ssh_user or "substratecloud"
 
         print(">>> 6. Wait for SSH…")
         if not ssh_with_retries(ip, port, user, attempts=30, delay=10):
@@ -218,7 +218,7 @@ def main() -> int:
         try:
             deleted = c.instances.delete(instance_id)
             print(f"    deleted  status={deleted.status.value}")
-        except SubstrateError as e:
+        except SubstrateCloudError as e:
             print(f"!! DELETE FAILED: {e}")
             return 1
 

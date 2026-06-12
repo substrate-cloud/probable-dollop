@@ -1,50 +1,94 @@
-# Examples
+# SubstrateCloud SDK examples
 
-Copy-paste-able demos for the Substrate SDK. Set `SUBSTRATE_MCP_TOKEN`
-in your environment (or run `substrate config init`) before any of these.
+Runnable recipes for the Python SDK and CLI. All examples are validated in CI via
+`tests/test_examples.py` (manifest parsing + dry-run `plan` without billing).
 
-## Headline examples — start here
+## Setup
 
-| File | What it shows |
-|---|---|
-| [`quickstart.py`](quickstart.py) | The shortest possible Substrate program. One line of business logic. |
-| [`apply_lifecycle.py`](apply_lifecycle.py) | `plan` → `apply` → reuse → `destroy`. Proves idempotency. |
-| [`prototype_to_yaml.py`](prototype_to_yaml.py) | Build a manifest in Python, dump it as YAML, commit to git. |
-| [`idempotent_ci.py`](idempotent_ci.py) | CI-safe redeploy pattern with drift detection. |
+```sh
+pip install "substratecloud[cli]"
+substratecloud config init
+# or:
+export SUBSTRATECLOUD_MCP_TOKEN=mcp_...
+```
+
+**Offline (default in CI):** examples only build manifests or print `plan` output.
+
+**Live launches** (starts billing):
+
+```sh
+export SUBSTRATECLOUD_EXAMPLES_LIVE=1
+python examples/python/04_plan_apply_destroy.py
+```
+
+Always tear down when finished: `substratecloud destroy <manifest-name>`.
+
+## Layout
+
+| Path | Contents |
+|------|----------|
+| [`manifests/`](manifests/) | YAML for `substratecloud plan` / `apply` / `destroy` |
+| [`python/`](python/) | SDK scripts (`01`–`14`) |
+| [`cli/COMMANDS.md`](cli/COMMANDS.md) | CLI command cheat sheet |
+
+## Python examples
+
+| Script | What it demonstrates |
+|--------|----------------------|
+| `01_quickstart_launch.py` | Fluent builder → `plan` / `apply` |
+| `02_inventory_browse.py` | `inventory.list` / `find_cheapest` |
+| `03_imperative_lifecycle.py` | `instances.create` → `wait_until_active` → `delete` |
+| `04_plan_apply_destroy.py` | YAML manifest lifecycle |
+| `05_fluent_docker_builder.py` | Docker chain + `to_yaml` |
+| `06_fluent_boot_script.py` | Boot script steps |
+| `07_secrets_and_env.py` | `Secret`, `$VAR`, `{from_env: ...}` |
+| `08_context_manager.py` | `with SubstrateCloud()` cleanup |
+| `09_from_yaml.py` | `client.from_yaml` + `plan` |
+| `10_prototype_to_yaml.py` | Export builder output to disk |
+| `11_docker_workload_direct.py` | `DockerWorkload` + `client.run` |
+| `12_inventory_region_fallback.py` | `find_with_fallback` |
+| `13_ssh_keys_list.py` | `ssh_keys.list` |
+| `14_client_run_composite.py` | One-shot `client.run` |
+| `15_deploy_git_repo.py` | Clone a git repo at boot (`BootScript.git_clone`) |
 
 ## YAML manifests
 
-| File | What it shows |
-|---|---|
-| [`manifests/minimal.yaml`](manifests/minimal.yaml) | Smallest valid manifest — `name`, `gpu`, `workload`, one safety net. |
-| [`manifests/vllm-inference.yaml`](manifests/vllm-inference.yaml) | Production-shaped vLLM deploy: region preference, secrets, ports, health check, budget + max-runtime. |
-| [`manifests/boot-script.yaml`](manifests/boot-script.yaml) | Boot-script workload (preview): plain GPU box with extras installed at boot. |
-
-Deploy any of them:
-
 ```sh
-substrate plan    examples/manifests/vllm-inference.yaml   # dry-run + cost
-substrate apply   examples/manifests/vllm-inference.yaml   # idempotent launch
-substrate destroy vllm-mistral                              # by manifest name
+substratecloud plan  examples/manifests/minimal-docker.yaml
+substratecloud apply examples/manifests/minimal-docker.yaml
+substratecloud destroy minimal-docker
 ```
 
-## Escape-hatch examples
+| Manifest | Workload |
+|----------|----------|
+| `minimal-docker.yaml` | nginx on A4000 |
+| `docker-with-secrets.yaml` | Docker env + secrets |
+| `boot-script-steps.yaml` | Boot script (steps) |
+| `boot-script-body.yaml` | Boot script (body) |
+| `vllm-inference.yaml` | vLLM + health check |
+| `multi-region-gpu.yaml` | Region preference list |
+| `deploy-git-repo.yaml` | Clone a public repo at boot (YAML `git clone`) |
 
-The original imperative API still works. See [`launch_docker.py`](launch_docker.py)
-and [`launch_boot_script.py`](launch_boot_script.py) for the typed-manager style.
+## Deploy your repository onto the VM
 
-## Before / after
+Yes — the SDK supports deploying code from git onto the GPU box. Three patterns:
 
-[`before/`](before) and [`after/`](after) hold paired scripts that power the
-"Adoption / friction" section of [`docs/FEATURE-METRICS.md`](../docs/FEATURE-METRICS.md).
-The build script line-counts them and inserts the numbers.
+| Pattern | Best for |
+|---------|----------|
+| **boot_script + `git clone`** | Bare VM, training scripts, system packages |
+| **`BootScript().git_clone(url, dest)`** | Same, composed in Python |
+| **Docker + clone in `args`** | Containerized apps (see `scripts/live_test_docker.py`) |
 
-## Conventions
+Set your repo URL:
 
-- Every example sets at least one safety net (`budget`, `max_runtime`, or
-  `idle_timeout`). `apply` refuses manifests without one by default.
-- `$VAR` inside an `env:` value is shorthand for reading from the
-  environment at submit time (`Secret.from_env(VAR)`). Use `\$literal`
-  to pass a literal string that happens to start with `$`.
-- All examples use `name:` as the identity key. Re-running `apply` with
-  the same `name` is safe; re-running `instance launch --name x` is not.
+```sh
+export SUBSTRATECLOUD_DEPLOY_REPO=https://github.com/your-org/your-repo.git
+python examples/python/15_deploy_git_repo.py   # with SUBSTRATECLOUD_EXAMPLES_LIVE=1
+```
+
+Or edit `examples/manifests/deploy-git-repo.yaml` and `substratecloud apply` it.
+
+**Private repos:** use a deploy key or `GIT_TOKEN` in a boot step / Docker `env` with
+`{from_env: GIT_TOKEN}` — secrets are resolved at submit time (see `07_secrets_and_env.py`).
+
+**Live E2E verifier:** `python scripts/e2e_deploy_repo.py` (SSH-checks clone on the VM).

@@ -1,0 +1,31 @@
+# Deploy a public git repo onto a GPU VM at boot (boot_script workload).
+#
+# Replace REPO_URL with your repository. For private repos, inject a deploy key
+# or token at boot (see examples/python/15_deploy_git_repo.py).
+#
+#   substratecloud plan  examples/manifests/deploy-git-repo.yaml
+#   substratecloud apply examples/manifests/deploy-git-repo.yaml
+#   substratecloud destroy deploy-git-repo
+
+name: deploy-git-repo
+tags:
+  - example:git-deploy
+
+gpu:
+  type: A4000
+  max_price_per_hour: 1.5
+
+workload:
+  type: boot_script
+  steps:
+    - set -euo pipefail
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update -y && apt-get install -y git
+    - git clone --depth 1 https://github.com/pytorch/examples /opt/app/repo
+    - test -f /opt/app/repo/README.md
+    - echo "REPO_DEPLOY_OK" > /var/log/substratecloud-boot/repo-deploy.marker
+
+lifecycle:
+  budget_limit_usd: 3
+  wait_until_active: true
+  wait_timeout: 1500

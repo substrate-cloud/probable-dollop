@@ -45,6 +45,9 @@ class Instance(BaseModel):
     def _coerce_empty_ip(cls, data: Any) -> Any:
         if isinstance(data, dict) and data.get("ip_address") in ("", None):
             data["ip_address"] = None
+        # API may send an explicit null while the instance is provisioning.
+        if isinstance(data, dict) and data.get("cost_per_hour") is None:
+            data["cost_per_hour"] = Decimal(0)
         return data
 
     @property

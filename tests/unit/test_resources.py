@@ -74,6 +74,17 @@ def test_instance_estimated_spend_uses_decimal(sample_instance):
     assert isinstance(inst.estimated_spend, Decimal)
 
 
+def test_instance_accepts_null_cost_per_hour(sample_instance):
+    # The API sends an explicit null while an instance is provisioning; that
+    # must coerce to Decimal(0), not fail validation (it takes down every
+    # command that lists instances).
+    from substratecloud.models.instance import Instance
+
+    sample_instance["cost_per_hour"] = None
+    inst = Instance.model_validate(sample_instance)
+    assert inst.cost_per_hour == Decimal(0)
+
+
 def test_find_by_name_returns_all_matches(client, mock_api, sample_instance):
     # API allows duplicate names. The SDK must return all of them.
     second = dict(sample_instance, id="11111111-1111-1111-1111-111111111111", name="dup")
